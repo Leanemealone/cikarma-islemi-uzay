@@ -29,7 +29,6 @@ function ekraniSalla() {
     let sayac = 0;
     document.body.style.backgroundColor = "#550000";
     
-    // MOBİL TİTREŞİM BURADA (Eğer cihaz destekliyorsa 300ms titret)
     if (navigator.vibrate) {
         navigator.vibrate(300);
     }
@@ -63,7 +62,6 @@ function soruUret() {
     soru.s2 = Math.floor(Math.random() * 15) + 1;
     soru.sonuc = soru.s1 - soru.s2;
     
-    // 4 METEORLU SİSTEM (1 Doğru, 3 Yanlış)
     meteorlar = [
         { x: Math.random() * (canvas.width - 160), y: -200, deger: soru.sonuc, tip: "dogru" },
         { x: Math.random() * (canvas.width - 160), y: -600, deger: soru.sonuc + Math.floor(Math.random() * 5) + 1, tip: "yanlis" },
@@ -96,17 +94,33 @@ window.addEventListener("touchstart", (e) => {
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // --- ALT ALTA SORU TASARIMI ---
     ctx.fillStyle = "yellow";
     ctx.font = "bold 45px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(`${soru.s1} - ${soru.s2} = ?`, canvas.width / 2, 70);
+    ctx.textAlign = "right";
+    let soruX = canvas.width / 2 + 40; 
     
+    ctx.fillText(soru.s1, soruX, 60); 
+    ctx.fillText(soru.s2, soruX, 110); 
+    
+    ctx.textAlign = "left";
+    ctx.fillText("-", soruX - 90, 110); 
+
+    ctx.beginPath();
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 4;
+    ctx.moveTo(soruX - 100, 125);
+    ctx.lineTo(soruX + 10, 125);
+    ctx.stroke();
+    // ------------------------------
+
     ctx.fillStyle = "white";
     ctx.font = "25px Arial";
     ctx.textAlign = "left";
-    ctx.fillText(`Puan: ${skor}`, 30, 60);
+    ctx.fillText(`Puan: ${skor}`, 30, 50);
 
-    if (gemi.y < 130) gemi.y = 130;
+    // Sınırlar (Alt alta soru geldiği için üst sınırı 180 yaptım)
+    if (gemi.y < 180) gemi.y = 180;
     if (gemi.y > canvas.height - 150) gemi.y = canvas.height - 150;
     if (gemi.x < 0) gemi.x = 0;
     if (gemi.x > canvas.width - 150) gemi.x = canvas.width - 150;
@@ -127,7 +141,7 @@ function guncelle() {
                 meteorHizi += 0.15;
                 soruUret();
             } else {
-                ekraniSalla(); // Sarsıntı ve Titreşim burada çalışır
+                ekraniSalla(); 
                 gemi.x = canvas.width / 2 - 75;
                 gemi.y = canvas.height - 200;
                 skor = 0;
@@ -148,5 +162,4 @@ soruUret();
 guncelle();
 </script>
 </body>
-
 </html>
