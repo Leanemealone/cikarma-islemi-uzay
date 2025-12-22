@@ -22,6 +22,7 @@ arkaPlanMuzigi.loop = true;
 arkaPlanMuzigi.volume = 0.2;
 
 const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3');
+const alkisSesi = new Audio('clap.mp3'); // Kendi dosyanı kullanabilirsin
 
 function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 ekranBoyutlandir();
@@ -74,7 +75,6 @@ function soruUret() {
     });
 }
 
-// KONTROLLER
 window.addEventListener("mousemove", (e) => { 
     arkaPlanMuzigi.play();
     gemi.x = e.clientX-75; gemi.y = e.clientY-75; 
@@ -90,8 +90,8 @@ window.addEventListener("touchmove", (e) => {
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // --- EĞLENCELİ ALT ALTA SORU ÇİZİMİ ---
-    ctx.fillStyle = "#FFD700"; // Altın Sarısı
+    // --- ÇOCUK DOSTU SORU ÇİZİMİ ---
+    ctx.fillStyle = "#FFD700";
     ctx.strokeStyle = "black";
     ctx.lineWidth = 4;
     ctx.font = "bold 60px 'Luckiest Guy'";
@@ -111,12 +111,10 @@ function guncelle() {
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
     ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
 
-    // SKOR
     ctx.textAlign = "left";
     ctx.fillStyle = "white"; ctx.font = "30px 'Luckiest Guy'";
     ctx.fillText(`Puan: ${skor}`, 30, 50);
 
-    // GERİ BİLDİRİM MESAJI
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
         ctx.font = "bold 70px 'Luckiest Guy'";
@@ -126,7 +124,6 @@ function guncelle() {
         mesajSayac--;
     }
 
-    // SINIRLAR
     if (gemi.y < 220) gemi.y = 220;
     if (gemi.y > canvas.height-150) gemi.y = canvas.height-150;
     if (gemi.x < 0) gemi.x = 0;
@@ -138,10 +135,8 @@ function guncelle() {
         m.y += meteorHizi;
         ctx.drawImage(meteorResmi, m.x, m.y, 160, 160);
         ctx.fillStyle = "white"; ctx.font = "bold 35px Arial"; ctx.textAlign = "center";
-        // Sayıları meteorun içine yazarken standart font daha okunaklıdır
         ctx.fillText(m.deger, m.x + 80, m.y + 95);
 
-        // --- HASSAS ÇARPIŞMA KONTROLÜ ---
         let t = 45; 
         if (gemi.x + t < m.x + 160 - t && 
             gemi.x + 150 - t > m.x + t && 
@@ -149,6 +144,7 @@ function guncelle() {
             gemi.y + 150 - t > m.y + t) {
             
             if (m.tip === "dogru") {
+                alkisSesi.play(); // ALKIŞ SESİ BURADA
                 skor += 10;
                 meteorHizi += 0.1;
                 mesaj = "Aferin! +10";
