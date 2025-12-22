@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Uzayda Matematik</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; color: white; font-family: Arial; touch-action: none; }
+        canvas { display: block; background: url('https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png'); background-size: cover; }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+function ekranBoyutlandir() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+ekranBoyutlandir();
+window.addEventListener("resize", ekranBoyutlandir);
+
+function ekraniSalla() {
+    let siddet = 15;
+    let sayac = 0;
+    document.body.style.backgroundColor = "#550000";
+    
+    // MOBİL TİTREŞİM BURADA (Eğer cihaz destekliyorsa 300ms titret)
+    if (navigator.vibrate) {
+        navigator.vibrate(300);
+    }
+    
+    let sarsintiInterval = setInterval(() => {
+        let xSalla = (Math.random() * siddet * 2) - siddet;
+        let ySalla = (Math.random() * siddet * 2) - siddet;
+        canvas.style.transform = `translate(${xSalla}px, ${ySalla}px)`;
+        sayac++;
+        if (sayac > 15) {
+            clearInterval(sarsintiInterval);
+            canvas.style.transform = `translate(0, 0)`; 
+            document.body.style.backgroundColor = "#000";
+        }
+    }, 30);
+}
+
+const gemiResmi = new Image();
+gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
+const meteorResmi = new Image();
+meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
+
+let skor = 0;
+let meteorHizi = 1;
+let soru = { s1: 0, s2: 0, sonuc: 0 };
+let meteorlar = [];
+let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
+
+function soruUret() {
+    soru.s1 = Math.floor(Math.random() * 30) + 20;
+    soru.s2 = Math.floor(Math.random() * 15) + 1;
+    soru.sonuc = soru.s1 - soru.s2;
+    
+    // 4 METEORLU SİSTEM (1 Doğru, 3 Yanlış)
+    meteorlar = [
+        { x: Math.random() * (canvas.width - 160), y: -200, deger: soru.sonuc, tip: "dogru" },
+        { x: Math.random() * (canvas.width - 160), y: -600, deger: soru.sonuc + Math.floor(Math.random() * 5) + 1, tip: "yanlis" },
+        { x: Math.random() * (canvas.width - 160), y: -1000, deger: soru.sonuc - Math.floor(Math.random() * 5) - 1, tip: "yanlis" },
+        { x: Math.random() * (canvas.width - 160), y: -1400, deger: soru.sonuc + Math.floor(Math.random() * 10) + 6, tip: "yanlis" }
+    ];
+}
+
+window.addEventListener("mousemove", (e) => { 
+    gemi.x = e.clientX - 75; 
+    gemi.y = e.clientY - 75; 
+});
+
+window.addEventListener("touchmove", (e) => {
+    let dokunmaX = e.touches[0].clientX;
+    let dokunmaY = e.touches[0].clientY;
+    gemi.x = dokunmaX - 75; 
+    gemi.y = dokunmaY - 75; 
+    e.preventDefault(); 
+}, { passive: false });
+
+window.addEventListener("touchstart", (e) => {
+    let dokunmaX = e.touches[0].clientX;
+    let dokunmaY = e.touches[0].clientY;
+    gemi.x = dokunmaX - 75;
+    gemi.y = dokunmaY - 75;
+    e.preventDefault();
+}, { passive: false });
+
+function guncelle() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "yellow";
+    ctx.font = "bold 45px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(`${soru.s1} - ${soru.s2} = ?`, canvas.width / 2, 70);
+    
+    ctx.fillStyle = "white";
+    ctx.font = "25px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText(`Puan: ${skor}`, 30, 60);
+
+    if (gemi.y < 130) gemi.y = 130;
+    if (gemi.y > canvas.height - 150) gemi.y = canvas.height - 150;
+    if (gemi.x < 0) gemi.x = 0;
+    if (gemi.x > canvas.width - 150) gemi.x = canvas.width - 150;
+
+    ctx.drawImage(gemiResmi, gemi.x, gemi.y, 150, 150);
+
+    meteorlar.forEach((m) => {
+        m.y += meteorHizi;
+        ctx.drawImage(meteorResmi, m.x, m.y, 160, 160);
+        ctx.fillStyle = "white";
+        ctx.font = "bold 35px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(m.deger, m.x + 80, m.y + 95);
+
+        if (gemi.x < m.x + 120 && gemi.x + 120 > m.x && gemi.y < m.y + 120 && gemi.y + 120 > m.y) {
+            if (m.tip === "dogru") {
+                skor += 10;
+                meteorHizi += 0.15;
+                soruUret();
+            } else {
+                ekraniSalla(); // Sarsıntı ve Titreşim burada çalışır
+                gemi.x = canvas.width / 2 - 75;
+                gemi.y = canvas.height - 200;
+                skor = 0;
+                meteorHizi = 1;
+                soruUret();
+            }
+        }
+
+        if (m.y > canvas.height) {
+            m.y = -200;
+            m.x = Math.random() * (canvas.width - 160);
+        }
+    });
+    requestAnimationFrame(guncelle);
+}
+
+soruUret();
+guncelle();
+</script>
+</body>
+</html>
