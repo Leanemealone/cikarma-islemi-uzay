@@ -62,12 +62,29 @@ function soruUret() {
     soru.s2 = Math.floor(Math.random() * 15) + 1;
     soru.sonuc = soru.s1 - soru.s2;
     
-    meteorlar = [
-        { x: Math.random() * (canvas.width - 160), y: -200, deger: soru.sonuc, tip: "dogru" },
-        { x: Math.random() * (canvas.width - 160), y: -600, deger: soru.sonuc + Math.floor(Math.random() * 5) + 1, tip: "yanlis" },
-        { x: Math.random() * (canvas.width - 160), y: -1000, deger: soru.sonuc - Math.floor(Math.random() * 5) - 1, tip: "yanlis" },
-        { x: Math.random() * (canvas.width - 160), y: -1400, deger: soru.sonuc + Math.floor(Math.random() * 10) + 6, tip: "yanlis" }
+    // Geçici bir dizi oluşturuyoruz
+    let yeniMeteorlar = [
+        { deger: soru.sonuc, tip: "dogru" },
+        { deger: soru.sonuc + Math.floor(Math.random() * 5) + 1, tip: "yanlis" },
+        { deger: soru.sonuc - Math.floor(Math.random() * 5) - 1, tip: "yanlis" },
+        { deger: soru.sonuc + Math.floor(Math.random() * 10) + 6, tip: "yanlis" }
     ];
+
+    // Diziyi Rastgele Karıştır (Fisher-Yates Shuffle)
+    for (let i = yeniMeteorlar.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [yeniMeteorlar[i], yeniMeteorlar[j]] = [yeniMeteorlar[j], yeniMeteorlar[i]];
+    }
+
+    // Karıştırılmış meteorlara X ve Y koordinatlarını ata
+    meteorlar = yeniMeteorlar.map((m, index) => {
+        return {
+            ...m,
+            x: Math.random() * (canvas.width - 160),
+            // Her meteorun arasına en az 300-400 piksel mesafe koyarak rastgele yükseklik ver
+            y: -200 - (index * 400) - (Math.random() * 200) 
+        };
+    });
 }
 
 window.addEventListener("mousemove", (e) => { 
@@ -167,5 +184,6 @@ guncelle();
 </script>
 </body>
 </html>
+
 
 
