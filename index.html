@@ -20,7 +20,7 @@ const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundH
 arkaPlanMuzigi.loop = true;
 arkaPlanMuzigi.volume = 0.2;
 
-const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3'); // Dosya adının aynı olduğundan emin ol
+const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3');
 
 function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 ekranBoyutlandir();
@@ -32,14 +32,13 @@ let soru = { s1: 0, s2: 0, sonuc: 0 };
 let meteorlar = [];
 let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
 
-// Geri bildirim yazısı değişkenleri
 let mesaj = "";
 let mesajRengi = "";
-let mesajSayac = 0; // Yazının ne kadar süre kalacağını belirler
+let mesajSayac = 0;
 
 function ekraniSalla() {
     if (navigator.vibrate) navigator.vibrate(300);
-    crashSesi.play(); // Çarpma sesi
+    crashSesi.play(); 
     let siddet = 15; let sayac = 0;
     document.body.style.backgroundColor = "#550000";
     let sarsintiInterval = setInterval(() => {
@@ -74,7 +73,6 @@ function soruUret() {
     });
 }
 
-// KONTROLLER
 window.addEventListener("mousemove", (e) => { 
     arkaPlanMuzigi.play();
     gemi.x = e.clientX-75; gemi.y = e.clientY-75; 
@@ -90,7 +88,6 @@ window.addEventListener("touchmove", (e) => {
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // MATEMATİKSEL HİZALANMIŞ SORU
     ctx.fillStyle = "yellow"; ctx.font = "bold 55px Arial"; ctx.textAlign = "right";
     let hizalamaX = canvas.width / 2 + 40;
     ctx.fillText(soru.s1, hizalamaX, 70);
@@ -103,7 +100,6 @@ function guncelle() {
     ctx.fillStyle = "white"; ctx.font = "25px Arial"; ctx.textAlign = "left";
     ctx.fillText(`Puan: ${skor}`, 30, 50);
 
-    // Geri bildirim mesajını çiz
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
         ctx.font = "bold 60px Arial";
@@ -125,34 +121,39 @@ function guncelle() {
         ctx.fillStyle = "white"; ctx.font = "bold 35px Arial"; ctx.textAlign = "center";
         ctx.fillText(m.deger, m.x + 80, m.y + 95);
 
-        if (gemi.x < m.x + 120 && gemi.x + 120 > m.x && gemi.y < m.y + 120 && gemi.y + 120 > m.y) {
+        // --- HASSAS ÇARPIŞMA KONTROLÜ BURADA ---
+        let t = 45; // Hitbox daraltma payı
+        if (gemi.x + t < m.x + 160 - t && 
+            gemi.x + 150 - t > m.x + t && 
+            gemi.y + t < m.y + 160 - t && 
+            gemi.y + 150 - t > m.y + t) {
+            
             if (m.tip === "dogru") {
                 skor += 10;
                 meteorHizi += 0.1;
                 mesaj = "Aferin! +10 Puan";
-                mesajRengi = "#00FF00"; // Yeşil
-                mesajSayac = 60; // Yaklaşık 1 saniye
+                mesajRengi = "#00FF00";
+                mesajSayac = 60;
                 soruUret();
             } else {
-               ekraniSalla();
-    mesaj = "Üzgünüm, Yanlış Yaptın! -10";
-    mesajRengi = "#FF0000";
-    mesajSayac = 60;
-    
-    // Puanı 10 azalt (Ama 0'ın altına düşmesin diye kontrol ekliyoruz)
-    skor = skor - 10;
-    if (skor < 0) skor = 0; 
-
-    gemi.x = canvas.width/2-75;
-    gemi.y = canvas.height-200;
-    
-    // Meteor hızı da tamamen sıfırlanmasın, biraz yavaşlasın yeter
-    meteorHizi = 1.5; 
-    
-    soruUret();
-}
+                ekraniSalla();
+                mesaj = "Yanlış! -10 Puan";
+                mesajRengi = "#FF0000";
+                mesajSayac = 60;
+                skor -= 10;
+                if (skor < 0) skor = 0;
+                gemi.x = canvas.width / 2 - 75;
+                gemi.y = canvas.height - 200;
+                meteorHizi = 1.5;
+                soruUret();
+            }
         }
-        if (m.y > canvas.height) { m.y = -200; m.x = Math.random()*(canvas.width-160); }
+        // ---------------------------------------
+
+        if (m.y > canvas.height) { 
+            m.y = -200; 
+            m.x = Math.random()*(canvas.width-160); 
+        }
     });
     requestAnimationFrame(guncelle);
 }
@@ -160,5 +161,3 @@ soruUret(); guncelle();
 </script>
 </body>
 </html>
-
-
