@@ -96,21 +96,25 @@ function guncelle() {
 
     // --- ALT ALTA SORU TASARIMI ---
     ctx.fillStyle = "yellow";
-    ctx.font = "bold 45px Arial";
-    ctx.textAlign = "right";
-    let soruX = canvas.width / 2 + 40; 
+    ctx.font = "bold 50px Arial";
+    ctx.textAlign = "center"; // Merkeze alalım ki kaybolmasın
     
-    ctx.fillText(soru.s1, soruX, 60); 
-    ctx.fillText(soru.s2, soruX, 110); 
+    let merkezX = canvas.width / 2; 
     
-    ctx.textAlign = "left";
-    ctx.fillText("-", soruX - 90, 110); 
+    // Sayıları alt alta yazdır
+    ctx.fillText(soru.s1, merkezX, 60);  // Üst sayı
+    ctx.fillText(soru.s2, merkezX, 115); // Alt sayı
+    
+    // Eksi işareti (Sayının biraz soluna)
+    ctx.font = "bold 40px Arial";
+    ctx.fillText("-", merkezX - 60, 115); 
 
+    // Çıkarma Çizgisi (Tam merkezde ve sayıların altında)
     ctx.beginPath();
     ctx.strokeStyle = "yellow";
-    ctx.lineWidth = 4;
-    ctx.moveTo(soruX - 100, 125);
-    ctx.lineTo(soruX + 10, 125);
+    ctx.lineWidth = 5;
+    ctx.moveTo(merkezX - 70, 130);
+    ctx.lineTo(merkezX + 70, 130);
     ctx.stroke();
     // ------------------------------
 
@@ -163,4 +167,5 @@ guncelle();
 </script>
 </body>
 </html>
+
 
