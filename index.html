@@ -15,17 +15,31 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// SES DOSYASI
-const arkaPlanMuzigi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/02.%20Burn%20Up%20The%20Space.mp3');
+// SES DOSYALARI
+const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
 arkaPlanMuzigi.loop = true;
 arkaPlanMuzigi.volume = 0.2;
+
+const crashSesi = new Audio('crash.mp3'); // Dosya adının aynı olduğundan emin ol
 
 function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 ekranBoyutlandir();
 window.addEventListener("resize", ekranBoyutlandir);
 
+let skor = 0; 
+let meteorHizi = 1.5; 
+let soru = { s1: 0, s2: 0, sonuc: 0 }; 
+let meteorlar = [];
+let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
+
+// Geri bildirim yazısı değişkenleri
+let mesaj = "";
+let mesajRengi = "";
+let mesajSayac = 0; // Yazının ne kadar süre kalacağını belirler
+
 function ekraniSalla() {
     if (navigator.vibrate) navigator.vibrate(300);
+    crashSesi.play(); // Çarpma sesi
     let siddet = 15; let sayac = 0;
     document.body.style.backgroundColor = "#550000";
     let sarsintiInterval = setInterval(() => {
@@ -37,9 +51,6 @@ function ekraniSalla() {
 
 const gemiResmi = new Image(); gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
 const meteorResmi = new Image(); meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
-
-let skor = 0; let meteorHizi = 1.5; let soru = { s1: 0, s2: 0, sonuc: 0 }; let meteorlar = [];
-let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
 
 function soruUret() {
     soru.s1 = Math.floor(Math.random() * 30) + 20;
@@ -53,28 +64,23 @@ function soruUret() {
         { deger: soru.sonuc + 8, tip: "yanlis" }
     ];
 
-    // Karıştırma (Shuffle)
     for (let i = yeniMeteorlar.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [yeniMeteorlar[i], yeniMeteorlar[j]] = [yeniMeteorlar[j], yeniMeteorlar[i]];
     }
 
     meteorlar = yeniMeteorlar.map((m, index) => {
-        return {
-            ...m,
-            x: Math.random() * (canvas.width - 160),
-            y: -200 - (index * 450) // Meteorlar arası dikey mesafe
-        };
+        return { ...m, x: Math.random() * (canvas.width - 160), y: -200 - (index * 450) };
     });
 }
 
 // KONTROLLER
 window.addEventListener("mousemove", (e) => { 
-    arkaPlanMuzigi.play(); // PC'de fareyi oynatınca müzik başlar
+    arkaPlanMuzigi.play();
     gemi.x = e.clientX-75; gemi.y = e.clientY-75; 
 });
 window.addEventListener("touchstart", (e) => { 
-    arkaPlanMuzigi.play(); // Mobilde dokununca müzik başlar
+    arkaPlanMuzigi.play();
     gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); 
 }, { passive: false });
 window.addEventListener("touchmove", (e) => { 
@@ -84,7 +90,7 @@ window.addEventListener("touchmove", (e) => {
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // MATEMATİKSEL HİZALANMIŞ SORU (Alt alta ve sağa yaslı)
+    // MATEMATİKSEL HİZALANMIŞ SORU
     ctx.fillStyle = "yellow"; ctx.font = "bold 55px Arial"; ctx.textAlign = "right";
     let hizalamaX = canvas.width / 2 + 40;
     ctx.fillText(soru.s1, hizalamaX, 70);
@@ -96,6 +102,15 @@ function guncelle() {
 
     ctx.fillStyle = "white"; ctx.font = "25px Arial"; ctx.textAlign = "left";
     ctx.fillText(`Puan: ${skor}`, 30, 50);
+
+    // Geri bildirim mesajını çiz
+    if (mesajSayac > 0) {
+        ctx.fillStyle = mesajRengi;
+        ctx.font = "bold 60px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2);
+        mesajSayac--;
+    }
 
     if (gemi.y < 200) gemi.y = 200;
     if (gemi.y > canvas.height-150) gemi.y = canvas.height-150;
@@ -111,8 +126,24 @@ function guncelle() {
         ctx.fillText(m.deger, m.x + 80, m.y + 95);
 
         if (gemi.x < m.x + 120 && gemi.x + 120 > m.x && gemi.y < m.y + 120 && gemi.y + 120 > m.y) {
-            if (m.tip === "dogru") { skor += 10; meteorHizi += 0.1; soruUret(); }
-            else { ekraniSalla(); gemi.x = canvas.width/2-75; gemi.y = canvas.height-200; skor = 0; meteorHizi = 1.5; soruUret(); }
+            if (m.tip === "dogru") {
+                skor += 10;
+                meteorHizi += 0.1;
+                mesaj = "Aferin! +10 Puan";
+                mesajRengi = "#00FF00"; // Yeşil
+                mesajSayac = 60; // Yaklaşık 1 saniye
+                soruUret();
+            } else {
+                ekraniSalla();
+                mesaj = "Üzgünüm, Yanlış Yaptın!";
+                mesajRengi = "#FF0000"; // Kırmızı
+                mesajSayac = 60;
+                gemi.x = canvas.width/2-75;
+                gemi.y = canvas.height-200;
+                skor = 0;
+                meteorHizi = 1.5;
+                soruUret();
+            }
         }
         if (m.y > canvas.height) { m.y = -200; m.x = Math.random()*(canvas.width-160); }
     });
@@ -122,4 +153,3 @@ soruUret(); guncelle();
 </script>
 </body>
 </html>
-
