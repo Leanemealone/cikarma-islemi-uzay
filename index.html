@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
-        canvas { display: block; background: url('https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png'); background-size: cover; }
+        canvas { display: block; background: #000; background-size: cover; }
     </style>
 </head>
 <body>
@@ -16,35 +16,54 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// --- 1. DEĞİŞKENLERİ TANIMLA (Önce Tanımlama) ---
+let yildizlar = [];
+let skor = 0; 
+let meteorHizi = 1.5; 
+let soru = { s1: 0, s2: 0, sonuc: 0 }; 
+let meteorlar = [];
+let mesaj = ""; 
+let mesajRengi = ""; 
+let mesajSayac = 0;
+
 // SESLER
 const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
 arkaPlanMuzigi.loop = true; arkaPlanMuzigi.volume = 0.2;
 const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3');
 const alkisSesi = new Audio('https://www.myinstants.com/media/sounds/applause_2.mp3');
 
-function ekranBoyutlandir() { 
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
-    yildizlariOlustur(); // Ekran boyutu değişirse yıldızları yeniden dağıt
-}
-ekranBoyutlandir();
-window.addEventListener("resize", ekranBoyutlandir);
+// GÖRSELLER
+const gemiResmi = new Image(); gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
+const meteorResmi = new Image(); meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
+const arkaPlanResmi = new Image(); arkaPlanResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png';
 
-// YILDIZ SİSTEMİ
-let yildizlar = [];
+// --- 2. FONKSİYONLAR ---
 function yildizlariOlustur() {
     yildizlar = [];
     for (let i = 0; i < 100; i++) {
-        yildizlar.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, boyut: Math.random() * 2, parlaklik: Math.random() * 10, hiz: Math.random() * 0.05 + 0.02 });
+        yildizlar.push({ 
+            x: Math.random() * canvas.width, 
+            y: Math.random() * canvas.height, 
+            boyut: Math.random() * 2, 
+            parlaklik: Math.random() * 10, 
+            hiz: Math.random() * 0.05 + 0.02 
+        });
     }
 }
 
-let skor = 0; let meteorHizi = 1.5; let soru = { s1: 0, s2: 0, sonuc: 0 }; let meteorlar = [];
-let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
-let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0;
+function ekranBoyutlandir() { 
+    canvas.width = window.innerWidth; 
+    canvas.height = window.innerHeight; 
+    yildizlariOlustur(); 
+}
+
+let gemi = { x: window.innerWidth / 2, y: window.innerHeight - 200 };
+window.addEventListener("resize", ekranBoyutlandir);
+ekranBoyutlandir();
 
 function ekraniSalla() {
     if (navigator.vibrate) navigator.vibrate(300);
-    crashSesi.play(); 
+    crashSesi.play().catch(e => console.log("Ses çalınamadı")); 
     let siddet = 15; let sayac = 0;
     document.body.style.backgroundColor = "#550000";
     let sarsintiInterval = setInterval(() => {
@@ -53,9 +72,6 @@ function ekraniSalla() {
         if (++sayac > 15) { clearInterval(sarsintiInterval); canvas.style.transform = `translate(0,0)`; document.body.style.backgroundColor = "#000"; }
     }, 30);
 }
-
-const gemiResmi = new Image(); gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
-const meteorResmi = new Image(); meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
 
 function soruUret() {
     soru.s1 = Math.floor(Math.random() * 30) + 20;
@@ -66,12 +82,16 @@ function soruUret() {
     meteorlar = yeniMeteorlar.map((m, index) => { return { ...m, x: Math.random() * (canvas.width - 160), y: -200 - (index * 450) }; });
 }
 
-window.addEventListener("mousemove", (e) => { arkaPlanMuzigi.play(); gemi.x = e.clientX-75; gemi.y = e.clientY-75; });
-window.addEventListener("touchstart", (e) => { arkaPlanMuzigi.play(); gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); }, { passive: false });
+// KONTROLLER
+window.addEventListener("mousemove", (e) => { arkaPlanMuzigi.play().catch(e=>{}); gemi.x = e.clientX-75; gemi.y = e.clientY-75; });
+window.addEventListener("touchstart", (e) => { arkaPlanMuzigi.play().catch(e=>{}); gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); }, { passive: false });
 window.addEventListener("touchmove", (e) => { gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); }, { passive: false });
 
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // ARKA PLAN RESMİ
+    ctx.drawImage(arkaPlanResmi, 0, 0, canvas.width, canvas.height);
 
     // YILDIZLARI ÇİZ
     yildizlar.forEach(y => {
@@ -112,7 +132,7 @@ function guncelle() {
         let t = 45; 
         if (gemi.x + t < m.x + 160 - t && gemi.x + 150 - t > m.x + t && gemi.y + t < m.y + 160 - t && gemi.y + 150 - t > m.y + t) {
             if (m.tip === "dogru") {
-                alkisSesi.play(); skor += 10; meteorHizi += 0.1; mesaj = "Aferin! +10"; mesajRengi = "#00FF00"; mesajSayac = 60; soruUret();
+                alkisSesi.play().catch(e=>{}); skor += 10; meteorHizi += 0.1; mesaj = "Aferin! +10"; mesajRengi = "#00FF00"; mesajSayac = 60; soruUret();
             } else {
                 ekraniSalla(); mesaj = "Yanlis! -10"; mesajRengi = "#FF0000"; mesajSayac = 60;
                 skor -= 10; if (skor < 0) skor = 0; gemi.x = canvas.width / 2 - 75; gemi.y = canvas.height - 200; meteorHizi = 1.5; soruUret();
@@ -122,7 +142,10 @@ function guncelle() {
     });
     requestAnimationFrame(guncelle);
 }
-yildizlariOlustur(); soruUret(); guncelle();
+
+// OYUNU BAŞLAT
+soruUret(); 
+guncelle();
 </script>
 </body>
 </html>
