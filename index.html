@@ -134,16 +134,23 @@ function guncelle() {
                 mesajSayac = 60; // Yaklaşık 1 saniye
                 soruUret();
             } else {
-                ekraniSalla();
-                mesaj = "Üzgünüm, Yanlış Yaptın!";
-                mesajRengi = "#FF0000"; // Kırmızı
-                mesajSayac = 60;
-                gemi.x = canvas.width/2-75;
-                gemi.y = canvas.height-200;
-                skor = 0;
-                meteorHizi = 1.5;
-                soruUret();
-            }
+               ekraniSalla();
+    mesaj = "Üzgünüm, Yanlış Yaptın! -10";
+    mesajRengi = "#FF0000";
+    mesajSayac = 60;
+    
+    // Puanı 10 azalt (Ama 0'ın altına düşmesin diye kontrol ekliyoruz)
+    skor = skor - 10;
+    if (skor < 0) skor = 0; 
+
+    gemi.x = canvas.width/2-75;
+    gemi.y = canvas.height-200;
+    
+    // Meteor hızı da tamamen sıfırlanmasın, biraz yavaşlasın yeter
+    meteorHizi = 1.5; 
+    
+    soruUret();
+}
         }
         if (m.y > canvas.height) { m.y = -200; m.x = Math.random()*(canvas.width-160); }
     });
@@ -153,4 +160,5 @@ soruUret(); guncelle();
 </script>
 </body>
 </html>
+
 
