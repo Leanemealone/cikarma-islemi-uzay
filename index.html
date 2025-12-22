@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Uzayda Matematik</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; color: white; font-family: Arial; touch-action: none; }
+        body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
         canvas { display: block; background: url('https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png'); background-size: cover; }
     </style>
 </head>
@@ -73,6 +74,7 @@ function soruUret() {
     });
 }
 
+// KONTROLLER
 window.addEventListener("mousemove", (e) => { 
     arkaPlanMuzigi.play();
     gemi.x = e.clientX-75; gemi.y = e.clientY-75; 
@@ -88,27 +90,44 @@ window.addEventListener("touchmove", (e) => {
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    ctx.fillStyle = "yellow"; ctx.font = "bold 55px Arial"; ctx.textAlign = "right";
+    // --- EĞLENCELİ ALT ALTA SORU ÇİZİMİ ---
+    ctx.fillStyle = "#FFD700"; // Altın Sarısı
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 4;
+    ctx.font = "bold 60px 'Luckiest Guy'";
+    ctx.textAlign = "right";
     let hizalamaX = canvas.width / 2 + 40;
-    ctx.fillText(soru.s1, hizalamaX, 70);
-    ctx.fillText(soru.s2, hizalamaX, 125);
+    
+    ctx.strokeText(soru.s1, hizalamaX, 75);
+    ctx.fillText(soru.s1, hizalamaX, 75);
+    
+    ctx.strokeText(soru.s2, hizalamaX, 135);
+    ctx.fillText(soru.s2, hizalamaX, 135);
+    
     ctx.textAlign = "left";
-    ctx.fillText("-", hizalamaX - 100, 125);
-    ctx.beginPath(); ctx.strokeStyle = "yellow"; ctx.lineWidth = 5;
-    ctx.moveTo(hizalamaX-110, 140); ctx.lineTo(hizalamaX+10, 140); ctx.stroke();
+    ctx.strokeText("-", hizalamaX - 100, 135);
+    ctx.fillText("-", hizalamaX - 100, 135);
+    
+    ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
+    ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
 
-    ctx.fillStyle = "white"; ctx.font = "25px Arial"; ctx.textAlign = "left";
+    // SKOR
+    ctx.textAlign = "left";
+    ctx.fillStyle = "white"; ctx.font = "30px 'Luckiest Guy'";
     ctx.fillText(`Puan: ${skor}`, 30, 50);
 
+    // GERİ BİLDİRİM MESAJI
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
-        ctx.font = "bold 60px Arial";
+        ctx.font = "bold 70px 'Luckiest Guy'";
         ctx.textAlign = "center";
+        ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2);
         ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2);
         mesajSayac--;
     }
 
-    if (gemi.y < 200) gemi.y = 200;
+    // SINIRLAR
+    if (gemi.y < 220) gemi.y = 220;
     if (gemi.y > canvas.height-150) gemi.y = canvas.height-150;
     if (gemi.x < 0) gemi.x = 0;
     if (gemi.x > canvas.width-150) gemi.x = canvas.width-150;
@@ -119,10 +138,11 @@ function guncelle() {
         m.y += meteorHizi;
         ctx.drawImage(meteorResmi, m.x, m.y, 160, 160);
         ctx.fillStyle = "white"; ctx.font = "bold 35px Arial"; ctx.textAlign = "center";
+        // Sayıları meteorun içine yazarken standart font daha okunaklıdır
         ctx.fillText(m.deger, m.x + 80, m.y + 95);
 
-        // --- HASSAS ÇARPIŞMA KONTROLÜ BURADA ---
-        let t = 45; // Hitbox daraltma payı
+        // --- HASSAS ÇARPIŞMA KONTROLÜ ---
+        let t = 45; 
         if (gemi.x + t < m.x + 160 - t && 
             gemi.x + 150 - t > m.x + t && 
             gemi.y + t < m.y + 160 - t && 
@@ -131,13 +151,13 @@ function guncelle() {
             if (m.tip === "dogru") {
                 skor += 10;
                 meteorHizi += 0.1;
-                mesaj = "Aferin! +10 Puan";
+                mesaj = "Aferin! +10";
                 mesajRengi = "#00FF00";
                 mesajSayac = 60;
                 soruUret();
             } else {
                 ekraniSalla();
-                mesaj = "Yanlış! -10 Puan";
+                mesaj = "Yanlış! -10";
                 mesajRengi = "#FF0000";
                 mesajSayac = 60;
                 skor -= 10;
@@ -148,7 +168,6 @@ function guncelle() {
                 soruUret();
             }
         }
-        // ---------------------------------------
 
         if (m.y > canvas.height) { 
             m.y = -200; 
