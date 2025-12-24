@@ -191,12 +191,12 @@ function guncelle() {
         m.y += meteorHizi;
         ctx.save();
         
-        // --- IŞIK EFEKTİ SİSTEMİ ---
-        ctx.shadowBlur = 15; // Parlama miktarı
-        if (soru.bonus && m.tip === "dogru") {
-            ctx.shadowColor = "purple"; // Bonus doğru cevabı mor kalsın
+        // --- GÜNCELLENEN IŞIK EFEKTİ ---
+        ctx.shadowBlur = 15; 
+        if (soru.bonus) {
+            ctx.shadowColor = "purple"; // Bonus soruda TÜM meteorlar mor yanar
         } else {
-            ctx.shadowColor = "orange"; // Diğer tüm meteorlar turuncu parlasın
+            ctx.shadowColor = "orange"; // Normal soruda TÜM meteorlar turuncu yanar
         }
         
         ctx.drawImage(meteorImg, m.x, m.y, 100, 160);
