@@ -36,9 +36,9 @@ let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
 
 // --- SÜRE VE CAN SİSTEMİ ---
 let kalanSure = 120;
-let can = 3; // Başlangıç canı
+let can = 3; 
 let oyunBitti = false;
-let bitisNedeni = ""; // "Süre Bitti" veya "Can Bitti"
+let bitisNedeni = ""; 
 
 let zamanlayici = setInterval(() => {
     if (!oyunBitti) {
@@ -156,24 +156,24 @@ function guncelle() {
     ctx.fillStyle = kalanSure < 10 ? "#FF0000" : "white";
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
 
-    // --- KALPLERİ ÇİZ (SÜRE ALTINA) ---
+    // KALPLERİ ÇİZ
     for(let i = 0; i < 3; i++) {
         let kalpX = (canvas.width - 30) - (i * 35);
         let kalpY = 60;
         ctx.font = "25px Arial";
-        // Eğer can o kalp sırasından azsa kalbi gri (boş) göster
         ctx.fillStyle = i < can ? "red" : "#555";
         ctx.fillText("❤", kalpX, kalpY);
     }
 
+    // --- KÜÇÜLTÜLMÜŞ GERİ BİLDİRİM MESAJI ---
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
         ctx.strokeStyle = "black";
-        ctx.lineWidth = 3;
-        ctx.font = "bold 50px 'Luckiest Guy'";
+        ctx.lineWidth = 2;
+        ctx.font = "bold 35px 'Luckiest Guy'"; // 50'den 35'e düşürüldü
         ctx.textAlign = "center";
-        ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2);
-        ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2);
+        ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2 + 100); // Geminin üstüne binmemesi için biraz aşağı kaydırdım
+        ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2 + 100);
         mesajSayac--;
     }
 
@@ -207,12 +207,11 @@ function guncelle() {
                 soruUret();
             } else {
                 ekraniSalla();
-                can--; // CAN AZALT
+                can--; 
                 mesaj = "Dikkat! Can Gitti";
                 mesajRengi = "#FF0000";
                 mesajSayac = 60;
                 
-                // Can bitti mi kontrol et
                 if(can <= 0) {
                     oyunBitti = true;
                     bitisNedeni = "CANINIZ BİTTİ!";
