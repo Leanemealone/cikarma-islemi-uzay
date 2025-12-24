@@ -182,9 +182,9 @@ function guncelle() {
     for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); }
 
     // GEMİ
-    gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 150));
-    gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 150));
-    ctx.drawImage(shipImg, gemi.x, gemi.y, 150, 150);
+    gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 100));
+    gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 100));
+    ctx.drawImage(shipImg, gemi.x, gemi.y, 100, 100);
 
     // MESAJLAR
     if (mesajSayac > 0) {
@@ -202,13 +202,19 @@ function guncelle() {
         m.y += meteorHizi;
         ctx.save();
         if (soru.bonus && m.tip === "dogru") { ctx.shadowBlur = 20; ctx.shadowColor = "purple"; }
-        ctx.drawImage(meteorImg, m.x, m.y, 160, 160);
+       ctx.drawImage(meteorImg, m.x, m.y, 100, 160);
         ctx.restore();
-        ctx.fillStyle = "white"; ctx.font = "bold 35px Arial"; ctx.textAlign = "center";
-        ctx.fillText(m.deger, m.x + 80, m.y + 95); 
+        ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.textAlign = "center";
+        ctx.fillText(m.deger, m.x + 50, m.y + 130); // Yazı merkezini yeni boyuta göre kaydırdık
 
-        let t = 45; 
-        if (gemi.x + t < m.x + 160 - t && gemi.x + 150 - t > m.x + t && gemi.y + t < m.y + 160 - t && gemi.y + 150 - t > m.y + t) {
+        let tX = 15; // Yatay hassasiyet
+let tY_ust = 80; // Alevlerin en üst kısmını görmezden gelmek için yüksek boşluk
+let tY_alt = 10; // Taşın alt kısmı için az boşluk
+
+if (gemi.x + 15 < m.x + 100 - 15 && 
+    gemi.x + 85 > m.x + 15 && 
+    gemi.y + 15 < m.y + 160 - tY_alt && 
+    gemi.y + 85 > m.y + tY_ust) {
             if (m.tip === "dogru") {
                 alkisSesi.play();
                 let kazanilanPuan = soru.bonus ? 20 : 10;
@@ -232,7 +238,10 @@ function guncelle() {
                 soruUret();
             }
         }
-        if (m.y > canvas.height) { m.y = -200; m.x = Math.random() * (canvas.width - 160); }
+       if (m.y > canvas.height) { 
+            m.y = -200; 
+            m.x = Math.random() * (canvas.width - 130); 
+        }
     });
     requestAnimationFrame(guncelle);
 }
@@ -240,6 +249,7 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
 
 
 
