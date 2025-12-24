@@ -182,9 +182,9 @@ function guncelle() {
     for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); }
 
     // GEMİ
-    gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 100));
-    gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 100));
-    ctx.drawImage(shipImg, gemi.x, gemi.y, 100, 100);
+    gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 80));
+    gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 80));
+    ctx.drawImage(shipImg, gemi.x, gemi.y, 80, 80);
 
     // MESAJLAR
     if (mesajSayac > 0) {
@@ -211,10 +211,10 @@ function guncelle() {
 let tY_ust = 80; // Alevlerin en üst kısmını görmezden gelmek için yüksek boşluk
 let tY_alt = 10; // Taşın alt kısmı için az boşluk
 
-if (gemi.x + 15 < m.x + 100 - 15 && 
-    gemi.x + 85 > m.x + 15 && 
-    gemi.y + 15 < m.y + 160 - tY_alt && 
-    gemi.y + 85 > m.y + tY_ust) {
+if (gemi.x + t < m.x + 100 - t && 
+    gemi.x + 80 - t > m.x + t && 
+    gemi.y + t < m.y + 160 - 10 && 
+    gemi.y + 80 - t > m.y + 80) {
             if (m.tip === "dogru") {
                 alkisSesi.play();
                 let kazanilanPuan = soru.bonus ? 20 : 10;
@@ -249,6 +249,7 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
 
 
 
