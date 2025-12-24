@@ -74,9 +74,9 @@ let gemi = { x: canvas.width / 2 - 40, y: canvas.height - 150 };
 function seviyeAyarla() {
     bgImg.src = arkaPlanlar[(seviye - 1) % arkaPlanlar.length];
     shipImg.src = gemiResimleri[(seviye - 1) % gemiResimleri.length];
-    kalanSure = 120; // [cite: 12]
-    can = 3; // [cite: 11]
-    meteorHizi = 1.3 + (seviye * 0.2); //
+    kalanSure = 120;
+    can = 3;
+    meteorHizi = 1.3 + (seviye * 0.2);
     seviyeMesajSayac = 120;
     soruUret();
 }
@@ -190,17 +190,24 @@ function guncelle() {
     meteorlar.forEach((m) => {
         m.y += meteorHizi;
         ctx.save();
-        if (soru.bonus && m.tip === "dogru") { ctx.shadowBlur = 20; ctx.shadowColor = "purple"; }
+        
+        // --- IŞIK EFEKTİ SİSTEMİ ---
+        ctx.shadowBlur = 15; // Parlama miktarı
+        if (soru.bonus && m.tip === "dogru") {
+            ctx.shadowColor = "purple"; // Bonus doğru cevabı mor kalsın
+        } else {
+            ctx.shadowColor = "orange"; // Diğer tüm meteorlar turuncu parlasın
+        }
+        
         ctx.drawImage(meteorImg, m.x, m.y, 100, 160);
         ctx.restore();
+        
         ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.textAlign = "center";
         ctx.fillText(m.deger, m.x + 50, m.y + 130);
 
-        // ÇARPIŞMA KONTROLÜ (DÜZELTİLDİ)
-        let tX = 15; 
+        // ÇARPIŞMA KONTROLÜ
         let tY_ust = 80; 
         let tY_alt = 10;
-
         if (gemi.x + 10 < m.x + 100 - 10 && 
             gemi.x + 70 > m.x + 10 && 
             gemi.y + 10 < m.y + 160 - tY_alt && 
@@ -224,7 +231,7 @@ function guncelle() {
                 mesaj = "Dikkat! Can Gitti"; mesajRengi = "red"; mesajSayac = 60;
                 if (can <= 0) { oyunBitti = true; bitisNedeni = "CANINIZ BİTTİ!"; }
                 skor = Math.max(0, skor - 10);
-                gemi.x = canvas.width / 2 - 40; gemi.y = canvas.height - 150; // Başlangıç noktası güncellendi 
+                gemi.x = canvas.width / 2 - 40; gemi.y = canvas.height - 150; 
                 soruUret();
             }
         }
