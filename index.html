@@ -34,11 +34,10 @@ let soru = { s1: 0, s2: 0, sonuc: 0 };
 let meteorlar = [];
 let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
 
-// --- SÜRE SİSTEMİ ---
+// SÜRE SİSTEMİ
 let kalanSure = 120;
 let oyunBitti = false;
 
-// Her saniye süreyi azaltan zamanlayıcı
 let zamanlayici = setInterval(() => {
     if (!oyunBitti) {
         kalanSure--;
@@ -110,21 +109,20 @@ function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     if (oyunBitti) {
-        // OYUN BİTTİ EKRANI
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillStyle = "rgba(0,0,0,0.8)";
         ctx.fillRect(0,0,canvas.width, canvas.height);
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
-        ctx.font = "80px 'Luckiest Guy'";
-        ctx.fillText("SÜRE BİTTİ!", canvas.width / 2, canvas.height / 2 - 50);
-        ctx.font = "50px 'Luckiest Guy'";
-        ctx.fillText("TOPLAM PUAN: " + skor, canvas.width / 2, canvas.height / 2 + 50);
-        ctx.font = "30px Arial";
-        ctx.fillText("Yeniden başlamak için sayfayı yenile", canvas.width / 2, canvas.height / 2 + 120);
+        ctx.font = "60px 'Luckiest Guy'";
+        ctx.fillText("SÜRE BİTTİ!", canvas.width / 2, canvas.height / 2 - 40);
+        ctx.font = "40px 'Luckiest Guy'";
+        ctx.fillText("TOPLAM PUAN: " + skor, canvas.width / 2, canvas.height / 2 + 40);
+        ctx.font = "24px Arial";
+        ctx.fillText("Yeniden başlamak için sayfayı yenile", canvas.width / 2, canvas.height / 2 + 100);
         return;
     }
 
-    // --- ÇOCUK DOSTU SORU ÇİZİMİ ---
+    // SORU ÇİZİMİ
     ctx.fillStyle = "#FFD700";
     ctx.strokeStyle = "black";
     ctx.lineWidth = 4;
@@ -145,19 +143,22 @@ function guncelle() {
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
     ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
 
-    // PUAN VE SÜRE GÖSTERGESİ
+    // --- KÜÇÜLTÜLMÜŞ PUAN VE SÜRE ---
     ctx.textAlign = "left";
-    ctx.fillStyle = "white"; ctx.font = "30px 'Luckiest Guy'";
-    ctx.fillText(`Puan: ${skor}`, 30, 50);
+    ctx.fillStyle = "white"; 
+    ctx.font = "24px 'Luckiest Guy'"; // 30'dan 24'e düşürüldü
+    ctx.fillText(`Puan: ${skor}`, 20, 40);
     
-    // Süre göstergesi (Süre azaldıkça kırmızıya döner)
     ctx.textAlign = "right";
     ctx.fillStyle = kalanSure < 10 ? "#FF0000" : "white";
-    ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 30, 50);
+    ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
 
+    // --- KÜÇÜLTÜLMÜŞ GERİ BİLDİRİM MESAJI ---
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
-        ctx.font = "bold 70px 'Luckiest Guy'";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 3;
+        ctx.font = "bold 50px 'Luckiest Guy'"; // 70'ten 50'ye düşürüldü
         ctx.textAlign = "center";
         ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2);
         ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2);
@@ -186,8 +187,8 @@ function guncelle() {
             if (m.tip === "dogru") {
                 alkisSesi.play();
                 skor += 10;
-                kalanSure += 2; // DOĞRU CEVAPTA +2 SANİYE
-                meteorHizi += 0.05; // Hızlanmayı biraz yavaşlattım oyun süreli olduğu için
+                kalanSure += 2; 
+                meteorHizi += 0.05;
                 mesaj = "Harika! +2 sn";
                 mesajRengi = "#00FF00";
                 mesajSayac = 60;
