@@ -72,12 +72,13 @@ window.addEventListener("resize", ekranBoyutlandir);
 let gemi = { x: canvas.width / 2 - 75, y: canvas.height - 200 };
 
 function seviyeAyarla() {
+   // Listelerin uzunluğu kaç olursa olsun (6 veya 10), hata vermez:
     bgImg.src = arkaPlanlar[(seviye - 1) % arkaPlanlar.length];
     shipImg.src = gemiResimleri[(seviye - 1) % gemiResimleri.length];
     
-    kalanSure = 120;
-    can = 3;
-    meteorHizi = 1.3 + (seviye * 0.2); 
+    kalanSure = 120; // Süreyi her seviyede sıfırla [cite: 12]
+    can = 3; // Canı tazele [cite: 11]
+    meteorHizi = 1.3 + (seviye * 0.2); // Seviye arttıkça hızlansın [cite: 50]
     seviyeMesajSayac = 120;
     soruUret();
 }
@@ -239,6 +240,7 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
 
 
 
