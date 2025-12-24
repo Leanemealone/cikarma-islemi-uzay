@@ -118,7 +118,6 @@ function ekraniSalla() {
     }, 30);
 }
 
-// --- DÜZELTİLEN AKIŞKAN HAREKET MANTIĞI ---
 const kontrol = (ex, ey) => { 
     if (oyunBitti) return;
     if (seviyeMesajSayac <= 0) { 
@@ -188,9 +187,23 @@ function guncelle() {
     ctx.textAlign = "left"; ctx.strokeText("-", hX - 100, 135); ctx.fillText("-", hX - 100, 135);
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.moveTo(hX-110, 155); ctx.lineTo(hX+10, 155); ctx.stroke();
 
-    // GEMİ VE METEORLAR
+    // GEMİ VE IŞIK EFEKTİ
     gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 80));
     gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 80));
+
+    // --- MOTOR IŞIK EFEKTİ ---
+    ctx.save();
+    let atesBoyu = 15 + Math.random() * 10;
+    let gradyan = ctx.createRadialGradient(gemi.x + 40, gemi.y + 70, 0, gemi.x + 40, gemi.y + 70, atesBoyu * 2);
+    gradyan.addColorStop(0, "rgba(0, 191, 255, 0.9)");
+    gradyan.addColorStop(0.5, "rgba(0, 0, 255, 0.4)");
+    gradyan.addColorStop(1, "transparent");
+    ctx.fillStyle = gradyan;
+    ctx.beginPath();
+    ctx.arc(gemi.x + 40, gemi.y + 75, atesBoyu, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.drawImage(shipImg, gemi.x, gemi.y, 80, 80);
 
     meteorlar.forEach((m) => {
@@ -203,7 +216,10 @@ function guncelle() {
         let tY_ust = 80, tY_alt = 10;
         if (gemi.x + 10 < m.x + 100 - 10 && gemi.x + 70 > m.x + 10 && gemi.y + 10 < m.y + 160 - tY_alt && gemi.y + 70 > m.y + tY_ust) {
             if (m.tip === "dogru") {
-                alkisSesi.currentTime = 0; alkisSesi.play(); skor += soru.bonus ? 20 : 10; kalanSure += 2;
+                // SES DÜZELTMESİ BURADA
+                alkisSesi.currentTime = 0; 
+                alkisSesi.play(); 
+                skor += soru.bonus ? 20 : 10; kalanSure += 2;
                 mesaj = soru.bonus ? "BONUS! +20 Puan" : "Harika! +2 Sn";
                 mesajRengi = "#00FF00"; mesajSayac = 60;
                 if (skor >= seviye * 80) { seviye++; seviyeAyarla(); } else { soruUret(); }
@@ -227,4 +243,3 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
-
