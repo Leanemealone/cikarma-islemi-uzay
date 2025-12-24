@@ -68,25 +68,43 @@ function ekraniSalla() {
 const gemiResmi = new Image(); gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
 const meteorResmi = new Image(); meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
 
+// --- GELİŞTİRİLMİŞ SORU ÜRETME (ÇAKIŞMA ÖNLEYİCİ) ---
 function soruUret() {
     soru.s1 = Math.floor(Math.random() * 30) + 20;
     soru.s2 = Math.floor(Math.random() * 15) + 1;
     soru.sonuc = soru.s1 - soru.s2;
     
-    let yeniMeteorlar = [
+    let tipler = [
         { deger: soru.sonuc, tip: "dogru" },
         { deger: soru.sonuc + 5, tip: "yanlis" },
         { deger: soru.sonuc - 3, tip: "yanlis" },
         { deger: soru.sonuc + 8, tip: "yanlis" }
     ];
 
-    for (let i = yeniMeteorlar.length - 1; i > 0; i--) {
+    // Önce tipleri karıştır
+    for (let i = tipler.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [yeniMeteorlar[i], yeniMeteorlar[j]] = [yeniMeteorlar[j], yeniMeteorlar[i]];
+        [tipler[i], tipler[j]] = [tipler[j], tipler[i]];
     }
 
-    meteorlar = yeniMeteorlar.map((m, index) => {
-        return { ...m, x: Math.random() * (canvas.width - 160), y: -200 - (index * 450) };
+    meteorlar = [];
+    tipler.forEach((mVeri, index) => {
+        let yeniX;
+        let cakismaVar = true;
+        let denemeSayisi = 0;
+
+        // Diğer meteorlarla çakışmayacak bir X bulana kadar dene
+        while (cakismaVar && denemeSayisi < 20) {
+            yeniX = Math.random() * (canvas.width - 160);
+            cakismaVar = meteorlar.some(m => Math.abs(m.x - yeniX) < 180); // 180px güvenli mesafe
+            denemeSayisi++;
+        }
+
+        meteorlar.push({
+            ...mVeri,
+            x: yeniX,
+            y: -200 - (index * 450) // Dikey mesafeyi de koruyoruz
+        });
     });
 }
 
@@ -143,22 +161,20 @@ function guncelle() {
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
     ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
 
-    // --- KÜÇÜLTÜLMÜŞ PUAN VE SÜRE ---
     ctx.textAlign = "left";
     ctx.fillStyle = "white"; 
-    ctx.font = "24px 'Luckiest Guy'"; // 30'dan 24'e düşürüldü
+    ctx.font = "24px 'Luckiest Guy'";
     ctx.fillText(`Puan: ${skor}`, 20, 40);
     
     ctx.textAlign = "right";
     ctx.fillStyle = kalanSure < 10 ? "#FF0000" : "white";
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
 
-    // --- KÜÇÜLTÜLMÜŞ GERİ BİLDİRİM MESAJI ---
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
         ctx.strokeStyle = "black";
         ctx.lineWidth = 3;
-        ctx.font = "bold 50px 'Luckiest Guy'"; // 70'ten 50'ye düşürüldü
+        ctx.font = "bold 50px 'Luckiest Guy'";
         ctx.textAlign = "center";
         ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2);
         ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2);
@@ -209,7 +225,14 @@ function guncelle() {
 
         if (m.y > canvas.height) { 
             m.y = -200; 
-            m.x = Math.random()*(canvas.width-160); 
+            // Burada da yeni X belirlerken çakışma kontrolü yapıyoruz
+            let yeniX;
+            let cakismaVar = true;
+            while(cakismaVar) {
+                yeniX = Math.random() * (canvas.width - 160);
+                cakismaVar = meteorlar.some(diger => diger !== m && Math.abs(diger.x - yeniX) < 180);
+            }
+            m.x = yeniX;
         }
     });
     requestAnimationFrame(guncelle);
