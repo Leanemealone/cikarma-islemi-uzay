@@ -203,7 +203,7 @@ function guncelle() {
         let tY_ust = 80, tY_alt = 10;
         if (gemi.x + 10 < m.x + 100 - 10 && gemi.x + 70 > m.x + 10 && gemi.y + 10 < m.y + 160 - tY_alt && gemi.y + 70 > m.y + tY_ust) {
             if (m.tip === "dogru") {
-                alkisSesi.play(); skor += soru.bonus ? 20 : 10; kalanSure += 2;
+                alkisSesi.currentTime = 0; alkisSesi.play(); skor += soru.bonus ? 20 : 10; kalanSure += 2;
                 mesaj = soru.bonus ? "BONUS! +20 Puan" : "Harika! +2 Sn";
                 mesajRengi = "#00FF00"; mesajSayac = 60;
                 if (skor >= seviye * 80) { seviye++; seviyeAyarla(); } else { soruUret(); }
@@ -227,3 +227,4 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
