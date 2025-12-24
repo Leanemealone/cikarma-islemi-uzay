@@ -113,6 +113,10 @@ let zamanlayici = setInterval(() => {
 }, 1000);
 
 function ekraniSalla() {
+    
+if (navigator.vibrate) {
+        navigator.vibrate(200); // Telefonu 200 milisaniye titreşir
+    }
     crashSesi.play(); 
     let siddet = 15; let sayac = 0;
     let sarsinti = setInterval(() => {
@@ -226,4 +230,5 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
 
