@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Uzayda Matematik</title>
+    <title>Uzayda Matematik: Seviye Macerası</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
-        canvas { display: block; background: url('https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png'); background-size: cover; }
+        canvas { display: block; background-color: #000; background-size: cover; }
     </style>
 </head>
 <body>
@@ -16,224 +16,196 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// SES DOSYALARI
+// SESLER
 const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
-arkaPlanMuzigi.loop = true;
-arkaPlanMuzigi.volume = 0.2;
-
+arkaPlanMuzigi.loop = true; arkaPlanMuzigi.volume = 0.2;
 const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3');
 const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3');
+
+// DEĞİŞKENLER
+let skor = 0; 
+let seviye = 1;
+let meteorHiziBase = 1.3;
+let meteorHizi = 1.3;
+let kalanSure = 120;
+let can = 3;
+let oyunBitti = false;
+let bitisNedeni = "";
+let soru = { s1: 0, s2: 0, sonuc: 0, bonus: false };
+let meteorlar = [];
+let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0;
+let seviyeMesajSayac = 120; // Seviye başında büyük yazı
+
+// GÖRSEL LİSTELERİ (Her seviye için farklı)
+const arkaPlanlar = [
+    'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png',
+    'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(1).png', // Örnek 2. seviye resmi
+    'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png'  // Örnek 3. seviye resmi
+];
+
+const gemiResimleri = [
+    'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png',
+    'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png', // Farklı link varsa değiştirilebilir
+    'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png'
+];
+
+const bgImg = new Image(); const shipImg = new Image();
+const meteorImg = new Image(); meteorImg.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
 
 function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 ekranBoyutlandir();
 window.addEventListener("resize", ekranBoyutlandir);
 
-let skor = 0; 
-let meteorHizi = 1.3; 
-let soru = { s1: 0, s2: 0, sonuc: 0 }; 
-let meteorlar = [];
-let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
+let gemi = { x: canvas.width / 2 - 75, y: canvas.height - 200 };
 
-// --- SÜRE VE CAN SİSTEMİ ---
-let kalanSure = 120;
-let can = 3; 
-let oyunBitti = false;
-let bitisNedeni = ""; 
+function seviyeAyarla() {
+    bgImg.src = arkaPlanlar[(seviye - 1) % arkaPlanlar.length];
+    shipImg.src = gemiResimleri[(seviye - 1) % gemiResimleri.length];
+    kalanSure = 120;
+    can = 3;
+    meteorHizi = meteorHiziBase + (seviye * 0.3);
+    seviyeMesajSayac = 120;
+    soruUret();
+}
+
+function soruUret() {
+    let s1, s2;
+    // Bonus sorusu şansı (%20)
+    let bonusMu = Math.random() < 0.2;
+
+    if (seviye === 1) {
+        // Onluk bozma yok (birler basamağı kontrolü)
+        do {
+            s1 = Math.floor(Math.random() * 30) + 20;
+            s2 = Math.floor(Math.random() * 15) + 1;
+        } while (s1 % 10 < s2 % 10);
+    } else {
+        // Onluk bozma dahil (tamamen rastgele)
+        s1 = Math.floor(Math.random() * 40) + 30;
+        s2 = Math.floor(Math.random() * 25) + 5;
+    }
+
+    soru = { s1: s1, s2: s2, sonuc: s1 - s2, bonus: bonusMu };
+    
+    let tipler = [
+        { v: soru.sonuc, t: "dogru" },
+        { v: soru.sonuc + (Math.floor(Math.random()*5)+1), t: "yanlis" },
+        { v: soru.sonuc - (Math.floor(Math.random()*5)+1), t: "yanlis" },
+        { v: soru.sonuc + 10, t: "yanlis" }
+    ];
+
+    tipler.sort(() => Math.random() - 0.5);
+
+    meteorlar = tipler.map((m, index) => ({
+        ...m,
+        x: Math.random() * (canvas.width - 160),
+        y: -200 - (index * 450)
+    }));
+}
 
 let zamanlayici = setInterval(() => {
-    if (!oyunBitti) {
+    if (!oyunBitti && seviyeMesajSayac <= 0) {
         kalanSure--;
-        if (kalanSure <= 0) {
-            kalanSure = 0;
-            oyunBitti = true;
-            bitisNedeni = "SÜRE BİTTİ!";
-            clearInterval(zamanlayici);
-        }
+        if (kalanSure <= 0) { oyunBitti = true; bitisNedeni = "SÜRE BİTTİ!"; }
     }
 }, 1000);
 
-let mesaj = "";
-let mesajRengi = "";
-let mesajSayac = 0;
-
 function ekraniSalla() {
-    if (navigator.vibrate) navigator.vibrate(300);
     crashSesi.play(); 
     let siddet = 15; let sayac = 0;
-    document.body.style.backgroundColor = "#550000";
-    let sarsintiInterval = setInterval(() => {
-        let xSalla = (Math.random()*siddet*2)-siddet; let ySalla = (Math.random()*siddet*2)-siddet;
-        canvas.style.transform = `translate(${xSalla}px, ${ySalla}px)`;
-        if (++sayac > 15) { clearInterval(sarsintiInterval); canvas.style.transform = `translate(0,0)`; document.body.style.backgroundColor = "#000"; }
+    let sarsinti = setInterval(() => {
+        canvas.style.transform = `translate(${(Math.random()*siddet*2)-siddet}px, ${(Math.random()*siddet*2)-siddet}px)`;
+        if (++sayac > 15) { clearInterval(sarsinti); canvas.style.transform = `translate(0,0)`; }
     }, 30);
 }
 
-const gemiResmi = new Image(); gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
-const meteorResmi = new Image(); meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
-
-function soruUret() {
-    soru.s1 = Math.floor(Math.random() * 30) + 20;
-    soru.s2 = Math.floor(Math.random() * 15) + 1;
-    soru.sonuc = soru.s1 - soru.s2;
-    
-    let yeniMeteorlar = [
-        { deger: soru.sonuc, tip: "dogru" },
-        { deger: soru.sonuc + 5, tip: "yanlis" },
-        { deger: soru.sonuc - 3, tip: "yanlis" },
-        { deger: soru.sonuc + 8, tip: "yanlis" }
-    ];
-
-    for (let i = yeniMeteorlar.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [yeniMeteorlar[i], yeniMeteorlar[j]] = [yeniMeteorlar[j], yeniMeteorlar[i]];
-    }
-
-    meteorlar = yeniMeteorlar.map((m, index) => {
-        return { ...m, x: Math.random() * (canvas.width - 160), y: -200 - (index * 450) };
-    });
-}
-
-window.addEventListener("mousemove", (e) => { 
-    if (oyunBitti) return;
-    arkaPlanMuzigi.play();
-    gemi.x = e.clientX-75; gemi.y = e.clientY-75; 
-});
-window.addEventListener("touchstart", (e) => { 
-    if (oyunBitti) return;
-    arkaPlanMuzigi.play();
-    gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); 
-}, { passive: false });
-window.addEventListener("touchmove", (e) => { 
-    if (oyunBitti) return;
-    gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); 
-}, { passive: false });
+const kontrol = (ex, ey) => { if (!oyunBitti && seviyeMesajSayac <= 0) { arkaPlanMuzigi.play(); gemi.x = ex - 75; gemi.y = ey - 75; } };
+window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY));
+window.addEventListener("touchstart", (e) => { kontrol(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+window.addEventListener("touchmove", (e) => { kontrol(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
 
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
     if (oyunBitti) {
-        ctx.fillStyle = "rgba(0,0,0,0.8)";
-        ctx.fillRect(0,0,canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.textAlign = "center";
-        ctx.font = "60px 'Luckiest Guy'";
+        ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "60px 'Luckiest Guy'";
         ctx.fillText(bitisNedeni, canvas.width / 2, canvas.height / 2 - 40);
-        ctx.font = "40px 'Luckiest Guy'";
-        ctx.fillText("TOPLAM PUAN: " + skor, canvas.width / 2, canvas.height / 2 + 40);
-        ctx.font = "24px Arial";
-        ctx.fillText("Yeniden başlamak için sayfayı yenile", canvas.width / 2, canvas.height / 2 + 100);
-        return;
+        ctx.fillText("SKOR: " + skor, canvas.width / 2, canvas.height / 2 + 40);
+        return requestAnimationFrame(guncelle);
     }
 
-    // SORU ÇİZİMİ
-    ctx.fillStyle = "#FFD700";
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 4;
-    ctx.font = "bold 60px 'Luckiest Guy'";
-    ctx.textAlign = "right";
-    let hizalamaX = canvas.width / 2 + 40;
-    
-    ctx.strokeText(soru.s1, hizalamaX, 75);
-    ctx.fillText(soru.s1, hizalamaX, 75);
-    
-    ctx.strokeText(soru.s2, hizalamaX, 135);
-    ctx.fillText(soru.s2, hizalamaX, 135);
-    
-    ctx.textAlign = "left";
-    ctx.strokeText("-", hizalamaX - 100, 135);
-    ctx.fillText("-", hizalamaX - 100, 135);
-    
-    ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
-    ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
+    // Seviye Duyurusu
+    if (seviyeMesajSayac > 0) {
+        ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, canvas.height/2-100, canvas.width, 200);
+        ctx.fillStyle = "#FFD700"; ctx.textAlign = "center"; ctx.font = "80px 'Luckiest Guy'";
+        ctx.fillText("SEVİYE " + seviye, canvas.width / 2, canvas.height / 2 + 30);
+        seviyeMesajSayac--;
+        return requestAnimationFrame(guncelle);
+    }
 
-    // PANEL: PUAN VE SÜRE
-    ctx.textAlign = "left";
-    ctx.fillStyle = "white"; 
-    ctx.font = "24px 'Luckiest Guy'";
-    ctx.fillText(`Puan: ${skor}`, 20, 40);
-    
-    ctx.textAlign = "right";
-    ctx.fillStyle = kalanSure < 10 ? "#FF0000" : "white";
+    // SORU PANELİ
+    ctx.fillStyle = soru.bonus ? "#FF00FF" : "#FFD700";
+    ctx.strokeStyle = "black"; ctx.lineWidth = 4; ctx.font = "bold 60px 'Luckiest Guy'"; ctx.textAlign = "right";
+    let hX = canvas.width / 2 + 40;
+    ctx.strokeText(soru.s1, hX, 75); ctx.fillText(soru.s1, hX, 75);
+    ctx.strokeText(soru.s2, hX, 135); ctx.fillText(soru.s2, hX, 135);
+    ctx.textAlign = "left"; ctx.strokeText("-", hX - 100, 135); ctx.fillText("-", hX - 100, 135);
+    ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.moveTo(hX-110, 155); ctx.lineTo(hX+10, 155); ctx.stroke();
+    if (soru.bonus) { ctx.font = "20px Arial"; ctx.fillText("BONUS SORU! (20 PUAN)", hX - 100, 185); }
+
+    // ÜST PANEL
+    ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "22px 'Luckiest Guy'";
+    ctx.fillText(`Puan: ${skor} | Seviye: ${seviye}`, 20, 40);
+    ctx.textAlign = "right"; ctx.fillStyle = kalanSure < 10 ? "red" : "white";
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
+    for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*30), 75); }
 
-    // KALPLERİ ÇİZ
-    for(let i = 0; i < 3; i++) {
-        let kalpX = (canvas.width - 30) - (i * 35);
-        let kalpY = 60;
-        ctx.font = "25px Arial";
-        ctx.fillStyle = i < can ? "red" : "#555";
-        ctx.fillText("❤", kalpX, kalpY);
-    }
-
-    // --- KÜÇÜLTÜLMÜŞ GERİ BİLDİRİM MESAJI ---
-    if (mesajSayac > 0) {
-        ctx.fillStyle = mesajRengi;
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
-        ctx.font = "bold 35px 'Luckiest Guy'"; // 50'den 35'e düşürüldü
-        ctx.textAlign = "center";
-        ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2 + 100); // Geminin üstüne binmemesi için biraz aşağı kaydırdım
-        ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2 + 100);
-        mesajSayac--;
-    }
-
-    if (gemi.y < 220) gemi.y = 220;
-    if (gemi.y > canvas.height-150) gemi.y = canvas.height-150;
-    if (gemi.x < 0) gemi.x = 0;
-    if (gemi.x > canvas.width-150) gemi.x = canvas.width-150;
-
-    ctx.drawImage(gemiResmi, gemi.x, gemi.y, 150, 150);
+    // GEMİ VE METEORLAR
+    gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 150));
+    gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 150));
+    ctx.drawImage(shipImg, gemi.x, gemi.y, 150, 150);
 
     meteorlar.forEach((m) => {
         m.y += meteorHizi;
-        ctx.drawImage(meteorResmi, m.x, m.y, 160, 160);
+        ctx.save();
+        if (soru.bonus && m.tip === "dogru") ctx.shadowBlur = 20; ctx.shadowColor = "purple";
+        ctx.drawImage(meteorImg, m.x, m.y, 160, 160);
+        ctx.restore();
         ctx.fillStyle = "white"; ctx.font = "bold 35px Arial"; ctx.textAlign = "center";
         ctx.fillText(m.deger, m.x + 80, m.y + 95);
 
         let t = 45; 
-        if (gemi.x + t < m.x + 160 - t && 
-            gemi.x + 150 - t > m.x + t && 
-            gemi.y + t < m.y + 160 - t && 
-            gemi.y + 150 - t > m.y + t) {
-            
+        if (gemi.x + t < m.x + 160 - t && gemi.x + 150 - t > m.x + t && gemi.y + t < m.y + 160 - t && gemi.y + 150 - t > m.y + t) {
             if (m.tip === "dogru") {
                 alkisSesi.play();
-                skor += 10;
-                kalanSure += 2; 
-                meteorHizi += 0.05;
-                mesaj = "Harika! +2 sn";
-                mesajRengi = "#00FF00";
-                mesajSayac = 60;
-                soruUret();
-            } else {
-                ekraniSalla();
-                can--; 
-                mesaj = "Dikkat! Can Gitti";
-                mesajRengi = "#FF0000";
-                mesajSayac = 60;
-                
-                if(can <= 0) {
-                    oyunBitti = true;
-                    bitisNedeni = "CANINIZ BİTTİ!";
-                }
+                let artis = soru.bonus ? 20 : 10;
+                skor += artis;
+                kalanSure += 2;
+                mesaj = soru.bonus ? "SÜPER BONUS! +20" : "Harika! +10";
+                mesajRengi = "#00FF00"; mesajSayac = 60;
 
-                skor -= 10;
-                if (skor < 0) skor = 0;
-                gemi.x = canvas.width / 2 - 75;
-                gemi.y = canvas.height - 200;
-                meteorHizi = 1.3;
+                if (skor >= seviye * 80) {
+                    seviye++;
+                    seviyeAyarla();
+                } else {
+                    soruUret();
+                }
+            } else {
+                ekraniSalla(); can--;
+                mesaj = "Dikkat! Can Gitti"; mesajRengi = "red"; mesajSayac = 60;
+                if (can <= 0) { oyunBitti = true; bitisNedeni = "CANINIZ BİTTİ!"; }
+                skor = Math.max(0, skor - 10);
+                gemi.x = canvas.width / 2 - 75; gemi.y = canvas.height - 200;
                 soruUret();
             }
         }
-
-        if (m.y > canvas.height) { 
-            m.y = -200; 
-            m.x = Math.random()*(canvas.width-160); 
-        }
+        if (m.y > canvas.height) { m.y = -200; m.x = Math.random() * (canvas.width - 160); }
     });
     requestAnimationFrame(guncelle);
 }
-soruUret(); guncelle();
+seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
