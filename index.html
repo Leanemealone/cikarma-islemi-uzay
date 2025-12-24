@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -23,7 +22,7 @@ arkaPlanMuzigi.loop = true;
 arkaPlanMuzigi.volume = 0.2;
 
 const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3');
-const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3'); // Kendi dosyanı kullanabilirsin
+const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3');
 
 function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 ekranBoyutlandir();
@@ -34,6 +33,22 @@ let meteorHizi = 1.3;
 let soru = { s1: 0, s2: 0, sonuc: 0 }; 
 let meteorlar = [];
 let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
+
+// --- SÜRE SİSTEMİ ---
+let kalanSure = 120;
+let oyunBitti = false;
+
+// Her saniye süreyi azaltan zamanlayıcı
+let zamanlayici = setInterval(() => {
+    if (!oyunBitti) {
+        kalanSure--;
+        if (kalanSure <= 0) {
+            kalanSure = 0;
+            oyunBitti = true;
+            clearInterval(zamanlayici);
+        }
+    }
+}, 1000);
 
 let mesaj = "";
 let mesajRengi = "";
@@ -77,20 +92,38 @@ function soruUret() {
 }
 
 window.addEventListener("mousemove", (e) => { 
+    if (oyunBitti) return;
     arkaPlanMuzigi.play();
     gemi.x = e.clientX-75; gemi.y = e.clientY-75; 
 });
 window.addEventListener("touchstart", (e) => { 
+    if (oyunBitti) return;
     arkaPlanMuzigi.play();
     gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); 
 }, { passive: false });
 window.addEventListener("touchmove", (e) => { 
+    if (oyunBitti) return;
     gemi.x = e.touches[0].clientX-75; gemi.y = e.touches[0].clientY-75; e.preventDefault(); 
 }, { passive: false });
 
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    if (oyunBitti) {
+        // OYUN BİTTİ EKRANI
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "80px 'Luckiest Guy'";
+        ctx.fillText("SÜRE BİTTİ!", canvas.width / 2, canvas.height / 2 - 50);
+        ctx.font = "50px 'Luckiest Guy'";
+        ctx.fillText("TOPLAM PUAN: " + skor, canvas.width / 2, canvas.height / 2 + 50);
+        ctx.font = "30px Arial";
+        ctx.fillText("Yeniden başlamak için sayfayı yenile", canvas.width / 2, canvas.height / 2 + 120);
+        return;
+    }
+
     // --- ÇOCUK DOSTU SORU ÇİZİMİ ---
     ctx.fillStyle = "#FFD700";
     ctx.strokeStyle = "black";
@@ -112,9 +145,15 @@ function guncelle() {
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
     ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
 
+    // PUAN VE SÜRE GÖSTERGESİ
     ctx.textAlign = "left";
     ctx.fillStyle = "white"; ctx.font = "30px 'Luckiest Guy'";
     ctx.fillText(`Puan: ${skor}`, 30, 50);
+    
+    // Süre göstergesi (Süre azaldıkça kırmızıya döner)
+    ctx.textAlign = "right";
+    ctx.fillStyle = kalanSure < 10 ? "#FF0000" : "white";
+    ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 30, 50);
 
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
@@ -145,23 +184,24 @@ function guncelle() {
             gemi.y + 150 - t > m.y + t) {
             
             if (m.tip === "dogru") {
-                alkisSesi.play(); // ALKIŞ SESİ BURADA
+                alkisSesi.play();
                 skor += 10;
-                meteorHizi += 0.1;
-                mesaj = "Aferin! +10";
+                kalanSure += 2; // DOĞRU CEVAPTA +2 SANİYE
+                meteorHizi += 0.05; // Hızlanmayı biraz yavaşlattım oyun süreli olduğu için
+                mesaj = "Harika! +2 sn";
                 mesajRengi = "#00FF00";
                 mesajSayac = 60;
                 soruUret();
             } else {
                 ekraniSalla();
-                mesaj = "Yanlış! -10";
+                mesaj = "Dikkat! -10";
                 mesajRengi = "#FF0000";
                 mesajSayac = 60;
                 skor -= 10;
                 if (skor < 0) skor = 0;
                 gemi.x = canvas.width / 2 - 75;
                 gemi.y = canvas.height - 200;
-                meteorHizi = 1.5;
+                meteorHizi = 1.3;
                 soruUret();
             }
         }
@@ -177,5 +217,3 @@ soruUret(); guncelle();
 </script>
 </body>
 </html>
-
-
