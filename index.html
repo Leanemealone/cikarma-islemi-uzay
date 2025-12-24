@@ -31,7 +31,6 @@ let meteorlar = []; let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
 let kalanSure = 120; let oyunBitti = false;
 let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0;
 
-// Zamanlayıcıyı değişken olarak tutuyoruz ki temizleyebilelim
 let zamanlayici = setInterval(() => {
     if (!oyunBitti) {
         kalanSure--;
@@ -42,35 +41,54 @@ let zamanlayici = setInterval(() => {
 const gemiResmi = new Image(); gemiResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
 const meteorResmi = new Image(); meteorResmi.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
 
-// --- OPTİMİZE EDİLMİŞ METEOR KONUM BULUCU ---
-function guvenliXBul() {
-    let deneme = 0;
-    let adayX;
-    let uygunMu = false;
-    while (!uygunMu && deneme < 15) { // En fazla 15 deneme yaparak donmayı engeller
-        adayX = Math.random() * (canvas.width - 160);
-        uygunMu = !meteorlar.some(m => Math.abs(m.x - adayX) < 170); // Mesafe kontrolü
-        deneme++;
-    }
-    return adayX;
-}
-
+// --- GELİŞTİRİLMİŞ ÇAKIŞMA ÖNLEYİCİ SİSTEM ---
 function soruUret() {
     soru.s1 = Math.floor(Math.random() * 30) + 20;
     soru.s2 = Math.floor(Math.random() * 15) + 1;
     soru.sonuc = soru.s1 - soru.s2;
     
-    let tipler = [{v: soru.sonuc, t: "dogru"}, {v: soru.sonuc+5, t: "yanlis"}, {v: soru.sonuc-3, t: "yanlis"}, {v: soru.sonuc+8, t: "yanlis"}];
-    tipler.sort(() => Math.random() - 0.5); // Daha hızlı karıştırma yöntemi
+    let tipler = [
+        { v: soru.sonuc, t: "dogru" },
+        { v: soru.sonuc + 5, t: "yanlis" },
+        { v: soru.sonuc - 3, t: "yanlis" },
+        { v: soru.sonuc + 8, t: "yanlis" }
+    ];
 
     meteorlar = [];
-    tipler.forEach((veri, i) => {
-        meteorlar.push({
-            deger: veri.v, tip: veri.t,
-            x: guvenliXBul(),
-            y: -200 - (i * 450)
-        });
+    
+    // 1. Önce DOĞRU meteoru yerleştir (Referans noktamız bu)
+    let dogruX = Math.random() * (canvas.width - 160);
+    meteorlar.push({
+        deger: tipler[0].v, tip: tipler[0].t,
+        x: dogruX,
+        y: -250
     });
+
+    // 2. Yanlış meteorları doğru olandan uzaklaştırarak yerleştir
+    for (let i = 1; i < tipler.length; i++) {
+        let adayX;
+        let deneme = 0;
+        let cakisma = true;
+
+        while (cakisma && deneme < 30) {
+            adayX = Math.random() * (canvas.width - 160);
+            // Hem doğru meteordan hem de eklenmiş diğer meteorlardan uzak mı?
+            cakisma = meteorlar.some(m => Math.abs(m.x - adayX) < 190); 
+            deneme++;
+        }
+        
+        meteorlar.push({
+            deger: tipler[i].v, tip: tipler[i].t,
+            x: adayX,
+            y: -250 - (i * 480) // Dikey aralığı artırdık (450 -> 480)
+        });
+    }
+
+    // 3. Meteorların geliş sırasını (yüksekliklerini) rastgele karıştır
+    // Sadece y koordinatlarını karıştırıyoruz ki kimin önce geleceği belli olmasın
+    let yKoordinatlari = meteorlar.map(m => m.y);
+    yKoordinatlari.sort(() => Math.random() - 0.5);
+    meteorlar.forEach((m, index) => m.y = yKoordinatlari[index]);
 }
 
 function ekraniSalla() {
@@ -82,7 +100,6 @@ function ekraniSalla() {
     }, 30);
 }
 
-// KONTROLLER
 const kontrolEt = (ex, ey) => { if(!oyunBitti) { arkaPlanMuzigi.play(); gemi.x = ex-75; gemi.y = ey-75; } };
 window.addEventListener("mousemove", (e) => kontrolEt(e.clientX, e.clientY));
 window.addEventListener("touchstart", (e) => { kontrolEt(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive: false});
@@ -95,7 +112,7 @@ function guncelle() {
         ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "50px 'Luckiest Guy'";
         ctx.fillText("SÜRE BİTTİ!", canvas.width / 2, canvas.height / 2 - 20);
         ctx.fillText("PUAN: " + skor, canvas.width / 2, canvas.height / 2 + 50);
-        return requestAnimationFrame(guncelle); // Ekranın donuk kalmaması için döngü devam etsin
+        return requestAnimationFrame(guncelle);
     }
 
     // SORU TASARIMI
@@ -106,7 +123,6 @@ function guncelle() {
     ctx.textAlign = "left"; ctx.strokeText("-", hX - 90, 135); ctx.fillText("-", hX - 90, 135);
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 5; ctx.moveTo(hX-100, 150); ctx.lineTo(hX+10, 150); ctx.stroke();
 
-    // PUAN-SÜRE
     ctx.font = "22px 'Luckiest Guy'"; ctx.textAlign = "left"; ctx.fillStyle = "white";
     ctx.fillText(`Puan: ${skor}`, 20, 35);
     ctx.textAlign = "right"; ctx.fillStyle = kalanSure < 10 ? "red" : "white";
@@ -118,12 +134,10 @@ function guncelle() {
         mesajSayac--;
     }
 
-    // GEMİ SINIRLARI
     gemi.y = Math.max(200, Math.min(gemi.y, canvas.height - 150));
     gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 150));
     ctx.drawImage(gemiResmi, gemi.x, gemi.y, 150, 150);
 
-    // METEOR DÖNGÜSÜ
     meteorlar.forEach((m) => {
         m.y += meteorHizi;
         ctx.drawImage(meteorResmi, m.x, m.y, 160, 160);
@@ -143,7 +157,20 @@ function guncelle() {
                 meteorHizi = 1.3; soruUret();
             }
         }
-        if (m.y > canvas.height) { m.y = -200; m.x = guvenliXBul(); }
+        // Meteor ekranın altına ulaşınca (Hata payı bırakmamak için soruUret'i tekrar çağırmıyoruz, sadece konumu sıfırlıyoruz)
+        if (m.y > canvas.height) { 
+            m.y = -200; 
+            // Yeniden doğarken de çakışma kontrolü
+            let yeniX;
+            let deneme = 0;
+            let cakisma = true;
+            while(cakisma && deneme < 20){
+                yeniX = Math.random() * (canvas.width - 160);
+                cakisma = meteorlar.some(diger => diger !== m && Math.abs(diger.x - yeniX) < 180);
+                deneme++;
+            }
+            m.x = yeniX;
+        }
     });
     requestAnimationFrame(guncelle);
 }
