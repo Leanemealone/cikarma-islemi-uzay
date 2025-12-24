@@ -118,14 +118,32 @@ function ekraniSalla() {
     }, 30);
 }
 
+// --- DÜZELTİLEN AKIŞKAN HAREKET MANTIĞI ---
 const kontrol = (ex, ey) => { 
-    if (oyunBitti) { oyunuSifirla(); return; }
-    if (seviyeMesajSayac <= 0) { arkaPlanMuzigi.play(); gemi.x = ex - 40; gemi.y = ey - 40; } 
+    if (oyunBitti) return;
+    if (seviyeMesajSayac <= 0) { 
+        arkaPlanMuzigi.play(); 
+        gemi.x = ex - 40; 
+        gemi.y = ey - 40; 
+    } 
 };
 
-window.addEventListener("mousedown", (e) => kontrol(e.clientX, e.clientY));
-window.addEventListener("touchstart", (e) => { kontrol(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
-window.addEventListener("touchmove", (e) => { if(!oyunBitti) { gemi.x = e.touches[0].clientX-40; gemi.y = e.touches[0].clientY-40; } e.preventDefault(); }, { passive: false });
+window.addEventListener("mousedown", (e) => { if (oyunBitti) oyunuSifirla(); });
+window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY));
+
+window.addEventListener("touchstart", (e) => { 
+    if (oyunBitti) oyunuSifirla();
+    kontrol(e.touches[0].clientX, e.touches[0].clientY); 
+    e.preventDefault(); 
+}, { passive: false });
+
+window.addEventListener("touchmove", (e) => { 
+    if(!oyunBitti) { 
+        gemi.x = e.touches[0].clientX - 40; 
+        gemi.y = e.touches[0].clientY - 40; 
+    } 
+    e.preventDefault(); 
+}, { passive: false });
 
 function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -137,17 +155,12 @@ function guncelle() {
         ctx.fillText(bitisNedeni, canvas.width / 2, canvas.height / 2 - 80);
         ctx.font = "40px 'Luckiest Guy'";
         ctx.fillText("TOPLAM SKOR: " + skor, canvas.width / 2, canvas.height / 2 - 20);
-        
-        // Yeniden Başla Yazısı (Luckiest Guy Fontuyla)
         ctx.fillStyle = "#FFF"; ctx.font = "22px 'Luckiest Guy'";
         ctx.fillText("DEVAM ETMEK ICIN DOKUN", canvas.width / 2, canvas.height / 2 + 50);
-
-        // Tekrar Başlat Butonu (Görsel Alan)
         let btnW = 220, btnH = 60, btnX = canvas.width/2 - 110, btnY = canvas.height/2 + 80;
         ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.roundRect(btnX, btnY, btnW, btnH, 20); ctx.fill();
         ctx.fillStyle = "black"; ctx.font = "bold 24px 'Luckiest Guy'";
         ctx.fillText("TEKRAR BASLAT", canvas.width / 2, btnY + 38);
-
         return requestAnimationFrame(guncelle);
     }
 
