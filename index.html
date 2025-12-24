@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,9 +34,11 @@ let soru = { s1: 0, s2: 0, sonuc: 0 };
 let meteorlar = [];
 let gemi = { x: canvas.width / 2, y: canvas.height - 200 };
 
-// SÜRE SİSTEMİ
+// --- SÜRE VE CAN SİSTEMİ ---
 let kalanSure = 120;
+let can = 3; // Başlangıç canı
 let oyunBitti = false;
+let bitisNedeni = ""; // "Süre Bitti" veya "Can Bitti"
 
 let zamanlayici = setInterval(() => {
     if (!oyunBitti) {
@@ -45,6 +46,7 @@ let zamanlayici = setInterval(() => {
         if (kalanSure <= 0) {
             kalanSure = 0;
             oyunBitti = true;
+            bitisNedeni = "SÜRE BİTTİ!";
             clearInterval(zamanlayici);
         }
     }
@@ -115,7 +117,7 @@ function guncelle() {
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
         ctx.font = "60px 'Luckiest Guy'";
-        ctx.fillText("SÜRE BİTTİ!", canvas.width / 2, canvas.height / 2 - 40);
+        ctx.fillText(bitisNedeni, canvas.width / 2, canvas.height / 2 - 40);
         ctx.font = "40px 'Luckiest Guy'";
         ctx.fillText("TOPLAM PUAN: " + skor, canvas.width / 2, canvas.height / 2 + 40);
         ctx.font = "24px Arial";
@@ -144,22 +146,31 @@ function guncelle() {
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.lineCap = "round";
     ctx.moveTo(hizalamaX-110, 155); ctx.lineTo(hizalamaX+10, 155); ctx.stroke();
 
-    // --- KÜÇÜLTÜLMÜŞ PUAN VE SÜRE ---
+    // PANEL: PUAN VE SÜRE
     ctx.textAlign = "left";
     ctx.fillStyle = "white"; 
-    ctx.font = "24px 'Luckiest Guy'"; // 30'dan 24'e düşürüldü
+    ctx.font = "24px 'Luckiest Guy'";
     ctx.fillText(`Puan: ${skor}`, 20, 40);
     
     ctx.textAlign = "right";
     ctx.fillStyle = kalanSure < 10 ? "#FF0000" : "white";
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
 
-    // --- KÜÇÜLTÜLMÜŞ GERİ BİLDİRİM MESAJI ---
+    // --- KALPLERİ ÇİZ (SÜRE ALTINA) ---
+    for(let i = 0; i < 3; i++) {
+        let kalpX = (canvas.width - 30) - (i * 35);
+        let kalpY = 60;
+        ctx.font = "25px Arial";
+        // Eğer can o kalp sırasından azsa kalbi gri (boş) göster
+        ctx.fillStyle = i < can ? "red" : "#555";
+        ctx.fillText("❤", kalpX, kalpY);
+    }
+
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
         ctx.strokeStyle = "black";
         ctx.lineWidth = 3;
-        ctx.font = "bold 50px 'Luckiest Guy'"; // 70'ten 50'ye düşürüldü
+        ctx.font = "bold 50px 'Luckiest Guy'";
         ctx.textAlign = "center";
         ctx.strokeText(mesaj, canvas.width / 2, canvas.height / 2);
         ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2);
@@ -196,9 +207,17 @@ function guncelle() {
                 soruUret();
             } else {
                 ekraniSalla();
-                mesaj = "Dikkat! -10";
+                can--; // CAN AZALT
+                mesaj = "Dikkat! Can Gitti";
                 mesajRengi = "#FF0000";
                 mesajSayac = 60;
+                
+                // Can bitti mi kontrol et
+                if(can <= 0) {
+                    oyunBitti = true;
+                    bitisNedeni = "CANINIZ BİTTİ!";
+                }
+
                 skor -= 10;
                 if (skor < 0) skor = 0;
                 gemi.x = canvas.width / 2 - 75;
