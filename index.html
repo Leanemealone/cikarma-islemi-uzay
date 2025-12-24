@@ -96,9 +96,23 @@ function soruUret() {
         s1 = Math.floor(Math.random() * 40) + 20; s2 = Math.floor(Math.random() * 19) + 1;
     }
     soru = { s1: s1, s2: s2, sonuc: s1 - s2, bonus: bonusMu };
-    let secenekler = [{ deger: soru.sonuc, tip: "dogru" }, { deger: soru.sonuc + 5, tip: "yanlis" }, { deger: soru.sonuc - 3, tip: "yanlis" }, { deger: soru.sonuc + 2, tip: "yanlis" }];
+    
+    let secenekler = [
+        { deger: soru.sonuc, tip: "dogru" },
+        { deger: soru.sonuc + 5, tip: "yanlis" },
+        { deger: soru.sonuc - 3, tip: "yanlis" },
+        { deger: soru.sonuc + 2, tip: "yanlis" }
+    ];
     secenekler.sort(() => Math.random() - 0.5);
-    meteorlar = secenekler.map((m, index) => ({ ...m, x: Math.random() * (canvas.width - 100), y: -250 - (index * 450) }));
+
+    // KULVAR (LANE) SİSTEMİ: Çakışmayı bitiren kısım
+    let laneWidth = canvas.width / 4; 
+    meteorlar = secenekler.map((m, index) => ({
+        ...m,
+        // Her meteorun kendi kulvarı (laneWidth) içinde küçük rastgele kayma payı
+        x: (index * laneWidth) + (Math.random() * (laneWidth - 110)), 
+        y: -250 - (index * 450)
+    }));
 }
 
 let zamanlayici = setInterval(() => {
@@ -138,16 +152,13 @@ function guncelle() {
         ctx.font = "40px 'Luckiest Guy'";
         ctx.fillText("TOPLAM SKOR: " + skor, canvas.width / 2, canvas.height / 2 - 20);
         
-        // Yeniden Başla Yazısı (Luckiest Guy Fontuyla)
         ctx.fillStyle = "#FFF"; ctx.font = "22px 'Luckiest Guy'";
         ctx.fillText("DEVAM ETMEK ICIN DOKUN", canvas.width / 2, canvas.height / 2 + 50);
 
-        // Tekrar Başlat Butonu (Görsel Alan)
         let btnW = 220, btnH = 60, btnX = canvas.width/2 - 110, btnY = canvas.height/2 + 80;
         ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.roundRect(btnX, btnY, btnW, btnH, 20); ctx.fill();
         ctx.fillStyle = "black"; ctx.font = "bold 24px 'Luckiest Guy'";
         ctx.fillText("TEKRAR BASLAT", canvas.width / 2, btnY + 38);
-
         return requestAnimationFrame(guncelle);
     }
 
@@ -201,7 +212,14 @@ function guncelle() {
                 skor = Math.max(0, skor - 10); gemi.x = canvas.width / 2 - 40; gemi.y = canvas.height - 150; soruUret();
             }
         }
-        if (m.y > canvas.height) { m.y = -200; m.x = Math.random() * (canvas.width - 100); }
+        // Meteor ekran dışına çıkınca yeni bir kulvarda doğması için (isteğe bağlı)
+        if (m.y > canvas.height) { 
+            m.y = -200; 
+            // Burada x'i tamamen rastgele yapmıyoruz, kulvar sistemini koruyoruz
+            let laneIndex = Math.floor(Math.random() * 4);
+            let laneW = canvas.width / 4;
+            m.x = (laneIndex * laneW) + (Math.random() * (laneW - 110));
+        }
     });
 
     if (mesajSayac > 0) {
