@@ -207,14 +207,16 @@ function guncelle() {
         ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.textAlign = "center";
         ctx.fillText(m.deger, m.x + 50, m.y + 130); // Yazı merkezini yeni boyuta göre kaydırdık
 
-        let tX = 15; // Yatay hassasiyet
-let tY_ust = 80; // Alevlerin en üst kısmını görmezden gelmek için yüksek boşluk
-let tY_alt = 10; // Taşın alt kısmı için az boşluk
+        let tX = 15; 
+let tY_ust = 80; 
+let tY_alt = 10;
 
-if (gemi.x + t < m.x + 100 - t && 
-    gemi.x + 80 - t > m.x + t && 
-    gemi.y + t < m.y + 160 - 10 && 
-    gemi.y + 80 - t > m.y + 80) {
+if (gemi.x + tX < m.x + 100 - tX && 
+    gemi.x + 80 - tX > m.x + tX && 
+    gemi.y + tX < m.y + 160 - tY_alt && 
+    gemi.y + 80 - tX > m.y + tY_ust) {
+    // Çarpışma gerçekleştiğinde yapılacak işlemler... [cite: 42, 44]
+}
             if (m.tip === "dogru") {
                 alkisSesi.play();
                 let kazanilanPuan = soru.bonus ? 20 : 10;
@@ -249,6 +251,7 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
 
 
 
