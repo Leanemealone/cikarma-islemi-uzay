@@ -151,19 +151,22 @@ function guncelle() {
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.moveTo(hX-110, 155); ctx.lineTo(hX+10, 155); ctx.stroke();
     if (soru.bonus) { ctx.font = "20px Arial"; ctx.fillText("BONUS SORU!", hX - 100, 185); }
 
-    // ÜST PANEL
+    // --- GÜNCELLENEN ÜST PANEL (SOL ÜST ALT ALTA) ---
     ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "24px 'Luckiest Guy'";
-    ctx.fillText(`Puan: ${skor} | Seviye: ${seviye}`, 20, 40);
+    ctx.fillText(`Puan: ${skor}`, 20, 40);
+    ctx.fillStyle = "#FFD700"; // Seviye rengi farklı olsun
+    ctx.fillText(`Seviye: ${seviye}`, 20, 75); // Puanın hemen altında
+    
     ctx.textAlign = "right"; ctx.fillStyle = kalanSure < 10 ? "red" : "white";
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
-    for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 65); }
+    for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); }
 
     // GEMİ
     gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 150));
     gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 150));
     ctx.drawImage(shipImg, gemi.x, gemi.y, 150, 150);
 
-    // --- MESAJLARIN ÇİZİLDİĞİ YER (DÜZELTİLDİ) ---
+    // MESAJLAR
     if (mesajSayac > 0) {
         ctx.fillStyle = mesajRengi;
         ctx.strokeStyle = "black"; ctx.lineWidth = 2;
@@ -217,4 +220,3 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
-
