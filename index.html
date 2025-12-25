@@ -40,8 +40,9 @@
 <canvas id="gameCanvas"></canvas>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+// Sürümleri 11.0.1 olarak stabilize ettik
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBLNmwvxDkVk2qpwwLt-CoXFtb45N3_Mvg",
@@ -55,47 +56,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const canvas = document.getElementById("gameCanvas"); [cite: 4]
-const ctx = canvas.getContext("2d"); [cite: 4]
-let currentUser = "";
-let girisYapildi = false;
-
-const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
-arkaPlanMuzigi.loop = true; arkaPlanMuzigi.volume = 0.2; [cite: 5]
-const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3'); [cite: 5]
-const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3'); [cite: 5]
-const bgImg = new Image(); const shipImg = new Image(); [cite: 12]
-const meteorImg = new Image(); meteorImg.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png'; [cite: 12]
-
-let skor = 0; let seviye = 1; let meteorHizi = 1.3; let kalanSure = 120; [cite: 6]
-let can = 3; let oyunBitti = false; let bitisNedeni = ""; [cite: 7]
-let soru = { s1: 0, s2: 0, sonuc: 0, bonus: false }; [cite: 8]
-let meteorlar = []; let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0; [cite: 8, 9]
-let seviyeMesajSayac = 120; let seviyeBonusHakki = true; [cite: 9]
-
-// --- FIREBASE: ÖĞRENCİ LİSTESİNİ ÇEK ---
+// ÖĞRENCİ LİSTESİNİ ÇEK - Hata yakalama ve console log eklendi
 async function ogrenciListesiniYukle() {
     const select = document.getElementById("studentSelect");
     try {
-        console.log("Veri çekme işlemi başladı...");
-        const querySnapshot = await getDocs(collection(db, "ogrenciler"));
+        console.log("Firestore bağlantısı kuruluyor...");
+        const colRef = collection(db, "ogrenciler");
+        const querySnapshot = await getDocs(colRef);
         
         if (querySnapshot.empty) {
-            alert("Dikkat: Veritabanında öğrenci bulunamadı!");
+            console.warn("Koleksiyon boş veya bulunamadı!");
+            select.innerHTML = '<option value="">ÖĞRENCİ BULUNAMADI</option>';
+            return;
         }
 
         select.innerHTML = '<option value="">İSMİNİ SEÇ...</option>';
         querySnapshot.forEach((doc) => {
-            console.log("Bulunan Öğrenci:", doc.id);
+            console.log("Veri geldi:", doc.id);
             let opt = document.createElement("option");
             opt.value = doc.id;
-            opt.textContent = doc.id;
+            opt.textContent = doc.id; // Doküman ID'sini (İsmi) ekrana yazar
             select.appendChild(opt);
         });
     } catch (e) {
-        console.error("Hata Detayı: ", e);
-        alert("Bağlantı Hatası: " + e.message);
-        select.innerHTML = '<option value="">HATA OLUŞTU</option>';
+        console.error("Firebase Hatası:", e);
+        select.innerHTML = '<option value="">YÜKLEME HATASI!</option>';
     }
 }
 ogrenciListesiniYukle();
@@ -285,5 +270,6 @@ function guncelle() {
 </script>
 </body>
 </html>
+
 
 
