@@ -8,23 +8,41 @@
     <style>
         body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
         canvas { display: block; background-color: #000; }
+        
+        /* Giriş Paneli */
         #entryPanel {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(10, 10, 50, 0.95); padding: 30px; border-radius: 25px;
             text-align: center; border: 5px solid #FFD700; z-index: 1000; width: 320px;
         }
+
+        /* YENİ: Karşılama Paneli (Astronotlu Ekran) */
+        #welcomePanel {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 50, 0.98); padding: 25px; border-radius: 30px;
+            text-align: center; border: 5px solid #00FF00; z-index: 1100; width: 85%; max-width: 350px;
+            display: none; /* Başlangıçta gizli */
+        }
+        #welcomeAstronaut { 
+            width: 100%; max-width: 200px; border-radius: 20px; margin-bottom: 15px; 
+            border: 3px solid #00FF00; box-shadow: 0 0 20px rgba(0,255,0,0.5);
+        }
+        #welcomeText { color: #FFD700; font-size: 22px; margin: 10px 0; line-height: 1.4; }
+        .welcome-sub { color: #00FF00; font-size: 16px; margin-bottom: 20px; }
+
         #entryPanel h2 { color: #FFD700; margin-bottom: 20px; font-size: 28px; }
         select, input, button { padding: 12px; margin: 10px 0; border-radius: 12px; font-family: 'Luckiest Guy'; font-size: 18px; width: 100%; border: none; box-sizing: border-box; }
         select, input { background: #eee; color: #333; }
         button { background: #00FF00; color: #000; cursor: pointer; transition: 0.3s; }
         button:hover { background: #00cc00; }
+        
         #leaderboard { margin-top: 20px; max-height: 180px; overflow-y: auto; text-align: left; font-size: 14px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 10px; }
         .score-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        /* Mobil Klavye Düzenlemesi */
         @media screen and (max-height: 500px) {
-            #entryPanel { top: 10px; transform: translate(-50%, 0); padding: 15px; width: 90%; max-width: 320px; }
+            #entryPanel, #welcomePanel { top: 10px; transform: translate(-50%, 0); padding: 15px; width: 90%; }
             #leaderboard { display: none; }
+            #welcomeAstronaut { max-width: 120px; }
         }
     </style>
 </head>
@@ -37,11 +55,17 @@
     </select>
     <input type="password" id="passInput" placeholder="ŞİFRE">
     <button id="startBtn">MACERAYA BAŞLA</button>
-    
     <div id="leaderboard">
         <div style="text-align: center; color: #FFD700; margin-bottom: 5px;">TOP 10 LİDERLER</div>
         <div id="scoreList">Yükleniyor...</div>
     </div>
+</div>
+
+<div id="welcomePanel">
+    <img src="https://i.ibb.co/v44f00Y/astronaut.jpg" id="welcomeAstronaut" alt="Astronot">
+    <div id="welcomeText"></div>
+    <div class="welcome-sub">Hazırsan başlat tuşuna bas!</div>
+    <button id="realStartBtn">OYUNU BAŞLAT</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -67,11 +91,18 @@ const ctx = canvas.getContext("2d");
 let currentUser = "";
 let girisYapildi = false;
 
-// Sesler ve Görseller
+// Sesler
 const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
 arkaPlanMuzigi.loop = true; arkaPlanMuzigi.volume = 0.2;
+
+// YENİ: Karşılama Müziği (Hafif Uzay Müziği)
+const karsilamaMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'); 
+karsilamaMuzigi.loop = true; karsilamaMuzigi.volume = 0.3;
+
 const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3');
 const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3');
+
+// Görseller
 const bgImg = new Image(); const shipImg = new Image();
 const meteorImg = new Image(); meteorImg.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png';
 
@@ -82,14 +113,11 @@ let meteorlar = []; let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0;
 let seviyeMesajSayac = 120; let seviyeBonusHakki = true;
 let gemi = { x: 0, y: 0 };
 
-// --- FIREBASE: ÖĞRENCİ LİSTESİNİ ÇEK (ALFABETİK) ---
 async function ogrenciListesiniYukle() {
     const select = document.getElementById("studentSelect");
     try {
-        // 'ad' alanına göre alfabetik sıralama ekledik
         const q = query(collection(db, "ogrenciler"), orderBy("ad", "asc"));
         const snap = await getDocs(q);
-
         select.innerHTML = '<option value="">İSMİNİ SEÇ...</option>';
         snap.forEach((docSnap) => {
             const data = docSnap.data();
@@ -99,13 +127,12 @@ async function ogrenciListesiniYukle() {
             select.appendChild(opt);
         });
     } catch (err) {
-        console.error("Hata:", err);
         select.innerHTML = '<option value="">YÜKLENEMEDİ</option>';
     }
 }
 ogrenciListesiniYukle();
 
-// --- GİRİŞ KONTROLÜ (MOBİL UYUMLU) ---
+// --- GİRİŞ KONTROLÜ VE KARŞILAMA EKRANI ---
 const handleLogin = async () => {
     const selected = document.getElementById("studentSelect").value;
     const pass = document.getElementById("passInput").value;
@@ -116,16 +143,31 @@ const handleLogin = async () => {
 
     if (userSnap.exists() && String(userSnap.data().sifre) === pass) {
         currentUser = userSnap.data().ad;
-        girisYapildi = true;
+        
+        // Giriş panelini kapat, Karşılama panelini aç
         document.getElementById("entryPanel").style.display = "none";
-        oyunuSifirla();
-        guncelle();
+        document.getElementById("welcomeText").innerHTML = `Merhaba ${currentUser},<br>Maceralarla dolu bir uzay görevine hazır mısın?`;
+        document.getElementById("welcomePanel").style.display = "block";
+        
+        // Karşılama müziğini başlat
+        karsilamaMuzigi.play().catch(e => console.log("Ses hatası:", e));
     } else {
         alert("Hatalı şifre!");
     }
 };
 
 document.getElementById("startBtn").addEventListener("click", handleLogin);
+
+// --- OYUNU GERÇEKTE BAŞLATAN BUTON ---
+document.getElementById("realStartBtn").addEventListener("click", () => {
+    karsilamaMuzigi.pause(); // Karşılama müziğini durdur
+    karsilamaMuzigi.currentTime = 0;
+    
+    document.getElementById("welcomePanel").style.display = "none";
+    girisYapildi = true;
+    oyunuSifirla();
+    guncelle();
+});
 
 async function saveScoreToFirebase(puan) {
     if (!currentUser) return;
@@ -219,9 +261,7 @@ const kontrol = (ex, ey) => {
 
 window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY));
 window.addEventListener("touchstart", (e) => { 
-    // Giriş paneli açıkken dokunmatik engellemeyi kaldır
     if (!girisYapildi) return;
-
     if (oyunBitti) { 
         document.getElementById("entryPanel").style.display = "block"; 
         girisYapildi = false; 
@@ -260,13 +300,15 @@ function guncelle() {
         seviyeMesajSayac--; return requestAnimationFrame(guncelle);
     }
 
+    // Bilgi Paneli (İsim kaldırıldı, mobilde çakışma engellendi)
     ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "24px 'Luckiest Guy'";
-ctx.fillText(`Puan: ${skor}`, 20, 40);
+    ctx.fillText(`Puan: ${skor}`, 20, 40);
     ctx.fillStyle = "#FFD700"; ctx.fillText(`Seviye: ${seviye}`, 20, 75);
     ctx.textAlign = "right"; ctx.fillStyle = kalanSure < 10 ? "red" : "white";
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
     for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); }
 
+    // Soru Alanı
     ctx.fillStyle = soru.bonus ? "#FF00FF" : "#FFD700"; ctx.strokeStyle = "black"; ctx.lineWidth = 4;
     ctx.font = "bold 60px 'Luckiest Guy'"; ctx.textAlign = "right";
     let hX = canvas.width / 2 + 40;
@@ -315,6 +357,3 @@ ctx.fillText(`Puan: ${skor}`, 20, 40);
 </script>
 </body>
 </html>
-
-
-
