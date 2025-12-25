@@ -79,17 +79,25 @@ let gemi = { x: 0, y: 0 };
 // --- FIREBASE: ÖĞRENCİ LİSTESİNİ ÇEK ---
 async function ogrenciListesiniYukle() {
     const select = document.getElementById("studentSelect");
+
     try {
-        const querySnapshot = await getDocs(collection(db, "ogrenciler"));
+        const snap = await getDocs(collection(db, "ogrenciler"));
+
         select.innerHTML = '<option value="">İSMİNİ SEÇ...</option>';
-        querySnapshot.forEach((doc) => {
+
+        snap.forEach((docSnap) => {
+            const data = docSnap.data();
+
             let opt = document.createElement("option");
-            opt.value = doc.id;
-            opt.textContent = doc.id;
+            opt.value = docSnap.id;   // girişte doc id kullanılacak
+            opt.textContent = data.ad; // ekranda görünen ad
             select.appendChild(opt);
         });
-    } catch (e) {
-        console.error("Liste yüklenirken hata:", e);
+
+        console.log("Öğrenciler yüklendi:", snap.size);
+
+    } catch (err) {
+        console.error("Öğrenci listesi alınamadı:", err);
         select.innerHTML = '<option value="">YÜKLENEMEDİ</option>';
     }
 }
@@ -105,14 +113,14 @@ document.getElementById("startBtn").onclick = async () => {
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists() && String(userSnap.data().sifre) === pass) {
-        currentUser = selected;
-        girisYapildi = true;
-        document.getElementById("entryPanel").style.display = "none";
-        oyunuSifirla();
-        guncelle();
-    } else {
-        alert("Hatalı şifre!");
-    }
+    currentUser = userSnap.data().ad; // 🔥 GERÇEK İSİM
+    girisYapildi = true;
+    document.getElementById("entryPanel").style.display = "none";
+    oyunuSifirla();
+    guncelle();
+} else {
+    alert("Hatalı şifre!");
+}
 };
 
 async function saveScoreToFirebase(puan) {
@@ -308,3 +316,4 @@ function guncelle() {
 </script>
 </body>
 </html>
+
