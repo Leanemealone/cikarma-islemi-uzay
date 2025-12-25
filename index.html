@@ -6,31 +6,19 @@
     <title>Uzayda Matematik: Seviye Macerası</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        [cite_start]body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; [cite: 1, 2]}
-        [cite_start]canvas { display: block; background-color: #000; background-size: cover; [cite: 3, 4]}
-
+        body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
+        canvas { display: block; background-color: #000; background-size: cover; }
         #entryPanel {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(10, 10, 50, 0.95); padding: 30px; border-radius: 25px;
-            text-align: center; border: 5px solid #FFD700; z-index: 1000; 
-            width: 320px; box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            text-align: center; border: 5px solid #FFD700; z-index: 1000; width: 320px;
         }
-        #entryPanel h2 { color: #FFD700; margin-bottom: 20px; font-size: 28px; text-shadow: 2px 2px #000; }
-        select, input, button {
-            padding: 12px; margin: 10px 0; border-radius: 12px; font-family: 'Luckiest Guy'; 
-            font-size: 18px; width: 100%; border: none; outline: none; box-sizing: border-box;
-        }
+        #entryPanel h2 { color: #FFD700; margin-bottom: 20px; font-size: 28px; }
+        select, input, button { padding: 12px; margin: 10px 0; border-radius: 12px; font-family: 'Luckiest Guy'; font-size: 18px; width: 100%; border: none; box-sizing: border-box; }
         select, input { background: #eee; color: #333; }
-        button { background: #00FF00; color: #000; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #00CC00; transform: scale(1.05); }
-        
-        #leaderboard {
-            margin-top: 20px; max-height: 180px; overflow-y: auto; text-align: left; 
-            font-size: 14px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 10px;
-        }
+        button { background: #00FF00; color: #000; cursor: pointer; }
+        #leaderboard { margin-top: 20px; max-height: 180px; overflow-y: auto; text-align: left; font-size: 14px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 10px; }
         .score-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -52,41 +40,38 @@
 <canvas id="gameCanvas"></canvas>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyBLNmwvxDkVk2qpwwLt-CoXFtb45N3_Mvg",
     authDomain: "uzay-cikarma-oyunu.firebaseapp.com",
     projectId: "uzay-cikarma-oyunu",
     storageBucket: "uzay-cikarma-oyunu.firebasestorage.app",
     messagingSenderId: "11975442094",
     appId: "1:11975442094:web:56b7006bb8bfc0e670f73f"
-  };
-
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// OYUN DEĞİŞKENLERİ
-[cite_start]const canvas = document.getElementById("gameCanvas"); [cite: 4]
-[cite_start]const ctx = canvas.getContext("2d"); [cite: 4]
+const canvas = document.getElementById("gameCanvas"); [cite: 4]
+const ctx = canvas.getContext("2d"); [cite: 4]
 let currentUser = "";
 let girisYapildi = false;
 
-[cite_start]// SESLER VE GÖRSELLER [cite: 5, 10, 11, 12]
-[cite_start]const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); arkaPlanMuzigi.loop = true; arkaPlanMuzigi.volume = 0.2; [cite: 5]
-[cite_start]const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3'); [cite: 5]
-[cite_start]const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3'); [cite: 5]
-[cite_start]const bgImg = new Image(); const shipImg = new Image(); [cite: 12]
-[cite_start]const meteorImg = new Image(); meteorImg.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png'; [cite: 12]
+const arkaPlanMuzigi = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
+arkaPlanMuzigi.loop = true; arkaPlanMuzigi.volume = 0.2; [cite: 5]
+const crashSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/main/crash.mp3'); [cite: 5]
+const alkisSesi = new Audio('https://raw.githubusercontent.com/Leanemealone/Eldeli-Toplama-Oyunu/main/clap.mp3'); [cite: 5]
+const bgImg = new Image(); const shipImg = new Image(); [cite: 12]
+const meteorImg = new Image(); meteorImg.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/goktasi.png'; [cite: 12]
 
-[cite_start]// OYUN DURUMU [cite: 6, 7, 8, 9]
-[cite_start]let skor = 0; let seviye = 1; let meteorHizi = 1.3; let kalanSure = 120; [cite: 6]
-[cite_start]let can = 3; let oyunBitti = false; let bitisNedeni = ""; [cite: 7]
-[cite_start]let soru = { s1: 0, s2: 0, sonuc: 0, bonus: false }; [cite: 8]
-[cite_start]let meteorlar = []; let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0; [cite: 8, 9]
-[cite_start]let seviyeMesajSayac = 120; let seviyeBonusHakki = true; [cite: 9]
+let skor = 0; let seviye = 1; let meteorHizi = 1.3; let kalanSure = 120; [cite: 6]
+let can = 3; let oyunBitti = false; let bitisNedeni = ""; [cite: 7]
+let soru = { s1: 0, s2: 0, sonuc: 0, bonus: false }; [cite: 8]
+let meteorlar = []; let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0; [cite: 8, 9]
+let seviyeMesajSayac = 120; let seviyeBonusHakki = true; [cite: 9]
 
 // --- FIREBASE: ÖĞRENCİ LİSTESİNİ ÇEK ---
 async function ogrenciListesiniYukle() {
@@ -102,17 +87,16 @@ async function ogrenciListesiniYukle() {
         });
     } catch (e) {
         console.error("Liste çekilemedi: ", e);
-        select.innerHTML = '<option value="">HATA: YÜKLENEMEDİ</option>';
+        select.innerHTML = '<option value="">HATA OLUŞTU</option>';
     }
 }
 ogrenciListesiniYukle();
 
-// --- FIREBASE: GİRİŞ KONTROLÜ ---
-document.getElementById("startBtn").addEventListener("click", async () => {
+// --- GİRİŞ KONTROLÜ ---
+document.getElementById("startBtn").onclick = async () => {
     const selected = document.getElementById("studentSelect").value;
     const pass = document.getElementById("passInput").value;
-
-    if (!selected) { alert("Lütfen ismini seç!"); return; }
+    if (!selected) return alert("İsminizi seçin!");
 
     const userRef = doc(db, "ogrenciler", selected);
     const userSnap = await getDoc(userRef);
@@ -126,9 +110,8 @@ document.getElementById("startBtn").addEventListener("click", async () => {
     } else {
         alert("Hatalı şifre!");
     }
-});
+};
 
-// --- FIREBASE: SKOR KAYDET VE LİDERLİK ---
 async function saveScoreToFirebase(puan) {
     if (!currentUser) return;
     const userRef = doc(db, "uzay_skorlar", currentUser);
@@ -145,157 +128,152 @@ function listenLeaderboard() {
         snapshot.forEach((doc) => {
             html += `<div class="score-row"><span>${doc.data().isim}</span><span>${doc.data().skor} Puan</span></div>`;
         });
-        document.getElementById("scoreList").innerHTML = html || "Henüz skor yok";
+        document.getElementById("scoreList").innerHTML = html || "Skor yok";
     });
 }
 listenLeaderboard();
 
-// --- OYUN FONKSİYONLARI ---
-function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; [cite_start]} [cite: 13]
-[cite_start]ekranBoyutlandir(); [cite: 13]
-[cite_start]window.addEventListener("resize", ekranBoyutlandir); [cite: 13]
+function ekranBoyutlandir() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; } [cite: 13]
+ekranBoyutlandir();
+window.addEventListener("resize", ekranBoyutlandir);
 
-[cite_start]let gemi = { x: canvas.width / 2 - 40, y: canvas.height - 150 }; [cite: 14]
+let gemi = { x: canvas.width / 2 - 40, y: canvas.height - 150 }; [cite: 14]
 
 function seviyeAyarla() {
-    [cite_start]const arkaPlanlar = ['https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background2.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background3.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background4.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background5.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background6.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background7.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background8.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background9.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background10.png']; [cite: 10]
-    [cite_start]const gemiResimleri = ['https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi2.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi3.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi4.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi5.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi6.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi7.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi8.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi9.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi10.png']; [cite: 11]
-    [cite_start]bgImg.src = arkaPlanlar[(seviye - 1) % arkaPlanlar.length]; [cite: 15]
-    [cite_start]shipImg.src = gemiResimleri[(seviye - 1) % gemiResimleri.length]; [cite: 15]
-    [cite_start]kalanSure = 120; can = 3; meteorHizi = 1.3 + (seviye * 0.2); [cite: 16]
-    [cite_start]seviyeMesajSayac = 120; seviyeBonusHakki = true; [cite: 16]
-    [cite_start]soruUret(); [cite: 16]
+    const arkaPlanlar = ['https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background2.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background3.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background4.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background5.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background6.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background7.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background8.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background9.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background10.png']; [cite: 10]
+    const gemiResimleri = ['https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi2.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi3.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi4.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi5.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi6.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi7.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi8.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi9.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi10.png']; [cite: 11]
+    bgImg.src = arkaPlanlar[(seviye - 1) % arkaPlanlar.length]; [cite: 15]
+    shipImg.src = gemiResimleri[(seviye - 1) % gemiResimleri.length]; [cite: 15]
+    kalanSure = 120; can = 3; meteorHizi = 1.3 + (seviye * 0.2); [cite: 16]
+    seviyeMesajSayac = 120; seviyeBonusHakki = true; [cite: 16]
+    soruUret(); [cite: 16]
 }
 
 function oyunuSifirla() {
-    [cite_start]skor = 0; seviye = 1; can = 3; kalanSure = 120; [cite: 17]
-    [cite_start]oyunBitti = false; seviyeAyarla(); [cite: 18]
+    skor = 0; seviye = 1; can = 3; kalanSure = 120; [cite: 17]
+    oyunBitti = false; seviyeAyarla(); [cite: 18]
 }
 
 function soruUret() {
-    [cite_start]let s1, s2; [cite: 19]
-    [cite_start]let bonusMu = (seviyeBonusHakki && Math.random() < 0.25); [cite: 19]
-    [cite_start]if (bonusMu) seviyeBonusHakki = false; [cite: 19]
+    let s1, s2; [cite: 19]
+    let bonusMu = (seviyeBonusHakki && Math.random() < 0.25); [cite: 19]
+    if (bonusMu) seviyeBonusHakki = false; [cite: 19]
     if (seviye === 1) {
-        do { s1 = Math.floor(Math.random() * 20) + 10; s2 = Math.floor(Math.random() * 9) + 1; [cite_start]} while (s1 % 10 < s2 % 10); [cite: 20, 21]
+        do { s1 = Math.floor(Math.random() * 20) + 10; s2 = Math.floor(Math.random() * 9) + 1; } while (s1 % 10 < s2 % 10); [cite: 20, 21]
     } else {
-        [cite_start]s1 = Math.floor(Math.random() * 40) + 20; s2 = Math.floor(Math.random() * 19) + 1; [cite: 22, 23]
+        s1 = Math.floor(Math.random() * 40) + 20; s2 = Math.floor(Math.random() * 19) + 1; [cite: 22, 23]
     }
-    [cite_start]soru = { s1: s1, s2: s2, sonuc: s1 - s2, bonus: bonusMu }; [cite: 23]
-    [cite_start]let secenekler = [{ deger: soru.sonuc, tip: "dogru" }, { deger: soru.sonuc + 5, tip: "yanlis" }, { deger: soru.sonuc - 3, tip: "yanlis" }, { deger: soru.sonuc + 2, tip: "yanlis" }]; [cite: 24]
-    [cite_start]secenekler.sort(() => Math.random() - 0.5); [cite: 25]
-    [cite_start]meteorlar = secenekler.map((m, index) => ({ ...m, x: Math.random() * (canvas.width - 100), y: -250 - (index * 450) })); [cite: 25]
+    soru = { s1: s1, s2: s2, sonuc: s1 - s2, bonus: bonusMu }; [cite: 23]
+    let secenekler = [{ deger: soru.sonuc, tip: "dogru" }, { deger: soru.sonuc + 5, tip: "yanlis" }, { deger: soru.sonuc - 3, tip: "yanlis" }, { deger: soru.sonuc + 2, tip: "yanlis" }]; [cite: 24]
+    secenekler.sort(() => Math.random() - 0.5); [cite: 25]
+    meteorlar = secenekler.map((m, index) => ({ ...m, x: Math.random() * (canvas.width - 100), y: -250 - (index * 450) })); [cite: 25]
 }
 
 setInterval(() => {
     if (girisYapildi && !oyunBitti && seviyeMesajSayac <= 0) {
-        [cite_start]kalanSure--; [cite: 26]
-        if (kalanSure <= 0) { kalanSure = 0; oyunBitti = true; bitisNedeni = "SÜRE BİTTİ!"; saveScoreToFirebase(skor); [cite_start]} [cite: 26]
+        kalanSure--; [cite: 26]
+        if (kalanSure <= 0) { kalanSure = 0; oyunBitti = true; bitisNedeni = "SÜRE BİTTİ!"; saveScoreToFirebase(skor); } [cite: 26]
     }
 }, 1000);
 
 function ekraniSalla() {
-    [cite_start]if (navigator.vibrate) navigator.vibrate(200); [cite: 27]
-    [cite_start]crashSesi.play(); [cite: 27]
-    [cite_start]let siddet = 15; let sayac = 0; [cite: 27]
+    if (navigator.vibrate) navigator.vibrate(200); [cite: 27]
+    crashSesi.play(); [cite: 27]
+    let siddet = 15; let sayac = 0; [cite: 27]
     let sarsinti = setInterval(() => {
-        [cite_start]canvas.style.transform = `translate(${(Math.random()*siddet*2)-siddet}px, ${(Math.random()*siddet*2)-siddet}px)`; [cite: 28]
-        if (++sayac > 15) { clearInterval(sarsinti); canvas.style.transform = `translate(0,0)`; [cite_start]} [cite: 28]
+        canvas.style.transform = `translate(${(Math.random()*siddet*2)-siddet}px, ${(Math.random()*siddet*2)-siddet}px)`; [cite: 28]
+        if (++sayac > 15) { clearInterval(sarsinti); canvas.style.transform = `translate(0,0)`; } [cite: 28]
     }, 30);
 }
 
 const kontrol = (ex, ey) => { 
-    [cite_start]if (oyunBitti || !girisYapildi) return; [cite: 29]
+    if (oyunBitti || !girisYapildi) return; [cite: 29]
     if (seviyeMesajSayac <= 0) { 
-        [cite_start]arkaPlanMuzigi.play(); [cite: 30]
-        [cite_start]gemi.x = ex - 40; gemi.y = ey - 40; [cite: 30, 31]
+        arkaPlanMuzigi.play(); [cite: 30]
+        gemi.x = ex - 40; gemi.y = ey - 40; [cite: 30, 31]
     } 
 };
 
-[cite_start]window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY)); [cite: 31]
+window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY)); [cite: 31]
 window.addEventListener("touchstart", (e) => { 
     if (oyunBitti) { document.getElementById("entryPanel").style.display = "block"; girisYapildi = false; }
-    [cite_start]kontrol(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); [cite: 32]
+    kontrol(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); [cite: 32]
 }, { passive: false });
-[cite_start]window.addEventListener("touchmove", (e) => { if(!oyunBitti) { gemi.x = e.touches[0].clientX - 40; gemi.y = e.touches[0].clientY - 40; } e.preventDefault(); [cite: 33]}, { passive: false });
+window.addEventListener("touchmove", (e) => { if(!oyunBitti) { gemi.x = e.touches[0].clientX - 40; gemi.y = e.touches[0].clientY - 40; } e.preventDefault(); }, { passive: false }); [cite: 33]
 
 function guncelle() {
     if (!girisYapildi) return;
-    [cite_start]ctx.clearRect(0, 0, canvas.width, canvas.height); [cite: 34]
-    [cite_start]ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height); [cite: 34]
+    ctx.clearRect(0, 0, canvas.width, canvas.height); [cite: 34]
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height); [cite: 34]
 
     if (oyunBitti) {
-        [cite_start]ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0,0,canvas.width, canvas.height); [cite: 35]
-        [cite_start]ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "60px 'Luckiest Guy'"; [cite: 35, 36]
-        [cite_start]ctx.fillText(bitisNedeni, canvas.width / 2, canvas.height / 2 - 80); [cite: 36]
-        [cite_start]ctx.font = "40px 'Luckiest Guy'"; ctx.fillText("SKORUN: " + skor, canvas.width / 2, canvas.height / 2 - 20); [cite: 37]
-        [cite_start]ctx.font = "22px 'Luckiest Guy'"; ctx.fillText("YENİ GİRİŞ İÇİN EKRANA DOKUN", canvas.width / 2, canvas.height / 2 + 50); [cite: 38]
-        [cite_start]return requestAnimationFrame(guncelle); [cite: 41]
+        ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0,0,canvas.width, canvas.height); [cite: 35]
+        ctx.fillStyle = "white"; ctx.textAlign = "center"; ctx.font = "60px 'Luckiest Guy'"; [cite: 35, 36]
+        ctx.fillText(bitisNedeni, canvas.width / 2, canvas.height / 2 - 80); [cite: 36]
+        ctx.font = "40px 'Luckiest Guy'"; ctx.fillText("SKORUN: " + skor, canvas.width / 2, canvas.height / 2 - 20); [cite: 37]
+        ctx.font = "22px 'Luckiest Guy'"; ctx.fillText("YENİ GİRİŞ İÇİN EKRANA DOKUN", canvas.width / 2, canvas.height / 2 + 50); [cite: 38]
+        return requestAnimationFrame(guncelle); [cite: 41]
     }
 
     if (seviyeMesajSayac > 0) {
-        [cite_start]ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, canvas.height/2-100, canvas.width, 200); [cite: 42, 43]
-        [cite_start]ctx.fillStyle = "#FFD700"; ctx.textAlign = "center"; ctx.font = "80px 'Luckiest Guy'"; [cite: 43]
-        [cite_start]ctx.fillText("SEVİYE " + seviye, canvas.width / 2, canvas.height / 2 + 30); [cite: 44]
-        [cite_start]seviyeMesajSayac--; return requestAnimationFrame(guncelle); [cite: 44]
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, canvas.height/2-100, canvas.width, 200); [cite: 42, 43]
+        ctx.fillStyle = "#FFD700"; ctx.textAlign = "center"; ctx.font = "80px 'Luckiest Guy'"; [cite: 43]
+        ctx.fillText("SEVİYE " + seviye, canvas.width / 2, canvas.height / 2 + 30); [cite: 44]
+        seviyeMesajSayac--; return requestAnimationFrame(guncelle); [cite: 44]
     }
 
-    // ÜST PANEL
-    [cite_start]ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "24px 'Luckiest Guy'"; [cite: 45, 46]
-    [cite_start]ctx.fillText(`${currentUser} | Puan: ${skor}`, 20, 40); [cite: 46]
-    [cite_start]ctx.fillStyle = "#FFD700"; ctx.fillText(`Seviye: ${seviye}`, 20, 75); [cite: 46]
-    ctx.textAlign = "right"; ctx.fillStyle = kalanSure < 10 ? [cite_start]"red" : "white"; [cite: 46, 47]
-    [cite_start]ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40); [cite: 47]
-    for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); [cite_start]} [cite: 48]
+    ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "24px 'Luckiest Guy'"; [cite: 45, 46]
+    ctx.fillText(`${currentUser} | Puan: ${skor}`, 20, 40); [cite: 46]
+    ctx.fillStyle = "#FFD700"; ctx.fillText(`Seviye: ${seviye}`, 20, 75); [cite: 46]
+    ctx.textAlign = "right"; ctx.fillStyle = kalanSure < 10 ? "red" : "white"; [cite: 46, 47]
+    ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40); [cite: 47]
+    for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); } [cite: 48]
 
-    // SORU PANELİ
-    ctx.fillStyle = soru.bonus ? [cite_start]"#FF00FF" : "#FFD700"; ctx.strokeStyle = "black"; ctx.lineWidth = 4; [cite: 49, 50]
-    [cite_start]ctx.font = "bold 60px 'Luckiest Guy'"; ctx.textAlign = "right"; [cite: 50]
-    [cite_start]let hX = canvas.width / 2 + 40; [cite: 50]
-    [cite_start]ctx.strokeText(soru.s1, hX, 75); ctx.fillText(soru.s1, hX, 75); [cite: 51]
-    [cite_start]ctx.strokeText(soru.s2, hX, 135); ctx.fillText(soru.s2, hX, 135); [cite: 51]
-    [cite_start]ctx.textAlign = "left"; ctx.strokeText("-", hX - 100, 135); ctx.fillText("-", hX - 100, 135); [cite: 51, 52]
-    [cite_start]ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.moveTo(hX-110, 155); ctx.lineTo(hX+10, 155); ctx.stroke(); [cite: 52]
+    ctx.fillStyle = soru.bonus ? "#FF00FF" : "#FFD700"; ctx.strokeStyle = "black"; ctx.lineWidth = 4; [cite: 49, 50]
+    ctx.font = "bold 60px 'Luckiest Guy'"; ctx.textAlign = "right"; [cite: 50]
+    let hX = canvas.width / 2 + 40; [cite: 50]
+    ctx.strokeText(soru.s1, hX, 75); ctx.fillText(soru.s1, hX, 75); [cite: 51]
+    ctx.strokeText(soru.s2, hX, 135); ctx.fillText(soru.s2, hX, 135); [cite: 51]
+    ctx.textAlign = "left"; ctx.strokeText("-", hX - 100, 135); ctx.fillText("-", hX - 100, 135); [cite: 51, 52]
+    ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.moveTo(hX-110, 155); ctx.lineTo(hX+10, 155); ctx.stroke(); [cite: 52]
 
-    // GEMİ
-    [cite_start]gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 80)); [cite: 53]
-    [cite_start]gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 80)); [cite: 54]
-    [cite_start]ctx.drawImage(shipImg, gemi.x, gemi.y, 80, 80); [cite: 57]
+    gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 80)); [cite: 53]
+    gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 80)); [cite: 54]
+    ctx.drawImage(shipImg, gemi.x, gemi.y, 80, 80); [cite: 57]
 
     meteorlar.forEach((m) => {
-        [cite_start]m.y += meteorHizi; [cite: 58]
-        ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = soru.bonus ? [cite_start]"purple" : "orange"; [cite: 58]
-        [cite_start]ctx.drawImage(meteorImg, m.x, m.y, 100, 160); ctx.restore(); [cite: 58]
-        [cite_start]ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.textAlign = "center"; [cite: 58]
-        [cite_start]ctx.fillText(m.deger, m.x + 50, m.y + 130); [cite: 58]
+        m.y += meteorHizi; [cite: 58]
+        ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = soru.bonus ? "purple" : "orange"; [cite: 58]
+        ctx.drawImage(meteorImg, m.x, m.y, 100, 160); ctx.restore(); [cite: 58]
+        ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.textAlign = "center"; [cite: 58]
+        ctx.fillText(m.deger, m.x + 50, m.y + 130); [cite: 58]
 
-        [cite_start]if (gemi.x + 10 < m.x + 90 && gemi.x + 70 > m.x + 10 && gemi.y + 10 < m.y + 150 && gemi.y + 70 > m.y + 80) { [cite: 58, 59]
+        if (gemi.x + 10 < m.x + 90 && gemi.x + 70 > m.x + 10 && gemi.y + 10 < m.y + 150 && gemi.y + 70 > m.y + 80) { [cite: 58, 59]
             if (m.tip === "dogru") {
-                [cite_start]alkisSesi.currentTime = 0; alkisSesi.play(); [cite: 59, 60]
-                skor += soru.bonus ? [cite_start]20 : 10; kalanSure += 2; [cite: 60]
-                mesaj = soru.bonus ? [cite_start]"BONUS! +20 Puan" : "Harika! +2 Sn"; [cite: 60]
-                [cite_start]mesajRengi = "#00FF00"; mesajSayac = 60; [cite: 60]
-                if (skor >= seviye * 80) { seviye++; seviyeAyarla(); } else { soruUret(); [cite_start]} [cite: 60, 61]
+                alkisSesi.currentTime = 0; alkisSesi.play(); [cite: 59, 60]
+                skor += soru.bonus ? 20 : 10; kalanSure += 2; [cite: 60]
+                mesaj = soru.bonus ? "BONUS! +20 Puan" : "Harika! +2 Sn"; [cite: 60]
+                mesajRengi = "#00FF00"; mesajSayac = 60; [cite: 60]
+                if (skor >= seviye * 80) { seviye++; seviyeAyarla(); } else { soruUret(); } [cite: 60, 61]
             } else {
-                [cite_start]ekraniSalla(); can--; [cite: 61, 62]
-                [cite_start]mesaj = "Dikkat! Can Gitti"; mesajRengi = "red"; mesajSayac = 60; [cite: 62]
-                if (can <= 0) { oyunBitti = true; bitisNedeni = "CANINIZ BİTTİ!"; saveScoreToFirebase(skor); [cite_start]} [cite: 62, 63]
-                [cite_start]skor = Math.max(0, skor - 10); gemi.x = canvas.width / 2 - 40; gemi.y = canvas.height - 150; soruUret(); [cite: 63, 64]
+                ekraniSalla(); can--; [cite: 61, 62]
+                mesaj = "Dikkat! Can Gitti"; mesajRengi = "red"; mesajSayac = 60; [cite: 62]
+                if (can <= 0) { oyunBitti = true; bitisNedeni = "CANINIZ BİTTİ!"; saveScoreToFirebase(skor); } [cite: 62, 63]
+                skor = Math.max(0, skor - 10); gemi.x = canvas.width / 2 - 40; gemi.y = canvas.height - 150; soruUret(); [cite: 63, 64]
             }
         }
         if (m.y > canvas.height) { 
-            [cite_start]let enYukaridakiY = Math.min(...meteorlar.map(met => met.y)); [cite: 65]
-            [cite_start]m.y = enYukaridakiY - 450; m.x = Math.random() * (canvas.width - 100); [cite: 66, 67]
+            let enYukaridakiY = Math.min(...meteorlar.map(met => met.y)); [cite: 65]
+            m.y = enYukaridakiY - 450; m.x = Math.random() * (canvas.width - 100); [cite: 66, 67]
         }
     });
 
     if (mesajSayac > 0) {
-        [cite_start]ctx.fillStyle = mesajRengi; ctx.font = "bold 40px 'Luckiest Guy'"; ctx.textAlign = "center"; [cite: 68, 69]
-        [cite_start]ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2 + 100); mesajSayac--; [cite: 69]
+        ctx.fillStyle = mesajRengi; ctx.font = "bold 40px 'Luckiest Guy'"; ctx.textAlign = "center"; [cite: 68, 69]
+        ctx.fillText(mesaj, canvas.width / 2, canvas.height / 2 + 100); mesajSayac--; [cite: 69]
     }
-    [cite_start]requestAnimationFrame(guncelle); [cite: 70]
+    requestAnimationFrame(guncelle); [cite: 70]
 }
 </script>
 </body>
 </html>
-
