@@ -230,7 +230,16 @@ function guncelle() {
                 skor = Math.max(0, skor - 10); gemi.x = canvas.width / 2 - 40; gemi.y = canvas.height - 150; soruUret();
             }
         }
-        if (m.y > canvas.height) { m.y = -200; m.x = Math.random() * (canvas.width - 100); }
+        if (m.y > canvas.height) { 
+    // Mevcut meteorlar içindeki en küçük Y değerini (en tepedeki meteoru) bul
+    let enYukaridakiY = Math.min(...meteorlar.map(met => met.y));
+    
+    // Ekrandan çıkan meteoru, en tepedekinin 450px arkasına koy
+    m.y = enYukaridakiY - 450; 
+    
+    // Yatay konumu rastgele yap
+    m.x = Math.random() * (canvas.width - 100); 
+}
     });
 
     if (mesajSayac > 0) {
@@ -243,3 +252,4 @@ seviyeAyarla(); guncelle();
 </script>
 </body>
 </html>
+
