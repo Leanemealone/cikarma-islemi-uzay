@@ -6,26 +6,30 @@
     <title>Uzayda Matematik: Seviye Macerası</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
-        canvas { display: block; background-color: #000; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            /* Giriş ekranı arka planı buraya eklendi */
+            background-image: url('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/girispanel.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white; 
+            font-family: 'Luckiest Guy', Arial; 
+            touch-action: none; 
+            background-color: #000;
+        }
+        canvas { 
+            display: block; 
+            /* Oyun başlayana kadar canvas şeffaf kalsın ki body'deki resim görünsün */
+            background-color: transparent; 
+        }
         
-       #entryPanel {
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%);
-    /* Arka plan görseli ekleme satırları */
-    background-image: url('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/girispanel.jpg'); 
-    background-size: cover;       /* Görselin kutuyu tamamen kaplamasını sağlar */
-    background-position: center;  /* Görseli ortalar */
-    
-    padding: 30px; 
-    border-radius: 25px;
-    text-align: center; 
-    border: 5px solid #FFD700; 
-    z-index: 1000; 
-    width: 320px;
-}
+        #entryPanel {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 50, 0.95); padding: 30px; border-radius: 25px;
+            text-align: center; border: 5px solid #FFD700; z-index: 1000; width: 320px;
+        }
 
         #welcomePanel {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -120,7 +124,6 @@ let meteorlar = []; let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0;
 let seviyeMesajSayac = 120; let seviyeBonusHakki = true;
 let gemi = { x: 0, y: 0, aci: 0, hedefX: 0 };
 
-// HAREKET EFEKTİ: Yıldızlar dizisi
 let yildizlar = Array.from({ length: 50 }, () => ({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
@@ -169,6 +172,8 @@ const handleLogin = async () => {
 document.getElementById("startBtn").addEventListener("click", handleLogin);
 
 document.getElementById("realStartBtn").addEventListener("click", () => {
+    // Oyun başladığında giriş resmi kalkar
+    document.body.style.backgroundImage = "none";
     karsilamaMuzigi.pause();
     karsilamaMuzigi.currentTime = 0;
     document.getElementById("welcomePanel").style.display = "none";
@@ -203,7 +208,6 @@ function ekranBoyutlandir() {
     canvas.height = window.innerHeight; 
     gemi.x = canvas.width / 2 - 40; 
     gemi.y = canvas.height - 150;
-    // Yıldızları yeniden dağıt
     yildizlar.forEach(y => { y.x = Math.random() * canvas.width; y.y = Math.random() * canvas.height; });
 }
 ekranBoyutlandir();
@@ -282,7 +286,6 @@ const kontrol = (ex, ey) => {
     if (oyunBitti || !girisYapildi) return;
     if (seviyeMesajSayac <= 0) { 
         arkaPlanMuzigi.play();
-        // Eğim hesaplama için hedefX kullanıyoruz
         gemi.hedefX = ex - 40;
         gemi.y = ey - 40;
     } 
@@ -291,7 +294,11 @@ const kontrol = (ex, ey) => {
 window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY));
 window.addEventListener("touchstart", (e) => { 
     if (!girisYapildi) return;
-    if (oyunBitti) { document.getElementById("entryPanel").style.display = "block"; girisYapildi = false; }
+    if (oyunBitti) { 
+        document.getElementById("entryPanel").style.display = "block"; 
+        girisYapildi = false; 
+        document.body.style.backgroundImage = "url('https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/girispanel.jpg')";
+    }
     kontrol(e.touches[0].clientX, e.touches[0].clientY); 
     e.preventDefault();
 }, { passive: false });
@@ -310,13 +317,12 @@ function guncelle() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-    // HAREKET EFEKTİ: Yıldızları Çiz
     yildizlar.forEach(y => {
         ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
         ctx.beginPath();
         ctx.arc(y.x, y.y, y.boyut, 0, Math.PI * 2);
         ctx.fill();
-        y.y += y.hiz + (seviye * 0.1); // Seviye arttıkça yıldızlar da hızlanır
+        y.y += y.hiz + (seviye * 0.1); 
         if (y.y > canvas.height) { y.y = 0; y.x = Math.random() * canvas.width; }
     });
 
@@ -336,10 +342,9 @@ function guncelle() {
         seviyeMesajSayac--; return requestAnimationFrame(guncelle);
     }
 
-    // Gemi Yumuşak Hareket ve Eğim (Rotation)
     let farkX = gemi.hedefX - gemi.x;
-    gemi.x += farkX * 0.1; // Yumuşak takip
-    gemi.aci = farkX * 0.005; // Sağa/sola gidiş hızına göre eğilme
+    gemi.x += farkX * 0.1;
+    gemi.aci = farkX * 0.005;
 
     ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "24px 'Luckiest Guy'";
     ctx.fillText(`Puan: ${skor}`, 20, 40);
@@ -348,7 +353,6 @@ function guncelle() {
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
     for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); }
 
-    // Soru Alanı
     ctx.fillStyle = soru.bonus ? "#FF00FF" : "#FFD700"; ctx.strokeStyle = "black"; ctx.lineWidth = 4;
     ctx.font = "bold 60px 'Luckiest Guy'"; ctx.textAlign = "right";
     let hX = canvas.width / 2 + 40;
@@ -360,7 +364,6 @@ function guncelle() {
     gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 80));
     gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 80));
 
-    // PLAZMA İZİ EFEKTİ
     ctx.save();
     let yanginBoyutu = 15 + Math.random() * 10;
     let gradyan = ctx.createRadialGradient(gemi.x + 40, gemi.y + 75, 0, gemi.x + 40, gemi.y + 75, yanginBoyutu * 2);
@@ -373,7 +376,6 @@ function guncelle() {
     ctx.fill();
     ctx.restore();
 
-    // GEMİ ÇİZİMİ (Eğimli)
     ctx.save();
     ctx.translate(gemi.x + 40, gemi.y + 40);
     ctx.rotate(gemi.aci);
@@ -416,9 +418,3 @@ function guncelle() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
