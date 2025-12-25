@@ -9,11 +9,23 @@
         body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
         canvas { display: block; background-color: #000; }
         
-        #entryPanel {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(10, 10, 50, 0.95); padding: 30px; border-radius: 25px;
-            text-align: center; border: 5px solid #FFD700; z-index: 1000; width: 320px;
-        }
+       #entryPanel {
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    /* Arka plan görseli ekleme satırları */
+    background-image: url('GÖRSEL_LİNKİNİ_BURAYA_YAZ'); 
+    background-size: cover;       /* Görselin kutuyu tamamen kaplamasını sağlar */
+    background-position: center;  /* Görseli ortalar */
+    
+    padding: 30px; 
+    border-radius: 25px;
+    text-align: center; 
+    border: 5px solid #FFD700; 
+    z-index: 1000; 
+    width: 320px;
+}
 
         #welcomePanel {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -404,6 +416,7 @@ function guncelle() {
 </script>
 </body>
 </html>
+
 
 
 
