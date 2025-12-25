@@ -4,97 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Uzayda Matematik: Seviye Macerası</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
-
 <style>
-body {
-    margin: 0;
-    overflow: hidden;
-    background: #000;
-    color: white;
-    font-family: 'Luckiest Guy', Arial;
-}
-
-/* 🔧 MOBİL SELECT FIX */
-select {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-canvas {
-    display: block;
-    background-color: #000;
-    pointer-events: none; /* 🔧 girişte canvas pasif */
-}
-
-.game-active canvas {
-    pointer-events: auto; /* 🔧 oyun başlayınca aktif */
-}
-
-#entryPanel {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(10, 10, 50, 0.95);
-    padding: 30px;
-    border-radius: 25px;
-    text-align: center;
-    border: 5px solid #FFD700;
-    z-index: 1000;
-    width: 320px;
-}
-
-#entryPanel h2 {
-    color: #FFD700;
-    margin-bottom: 20px;
-    font-size: 28px;
-}
-
-select, input, button {
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 12px;
-    font-size: 18px;
-    width: 100%;
-    border: none;
-}
-
-select, input {
-    background: #eee;
-    color: #333;
-}
-
-button {
-    background: #00FF00;
-    cursor: pointer;
-}
-
-#leaderboard {
-    margin-top: 20px;
-    max-height: 180px;
-    overflow-y: auto;
-    font-size: 14px;
-}
-.score-row {
-    display: flex;
-    justify-content: space-between;
-}
+    body { margin: 0; overflow: hidden; background: #000; color: white; font-family: 'Luckiest Guy', Arial; touch-action: none; }
+    canvas { display: block; background-color: #000; pointer-events: none; }
+    body.game-active canvas { pointer-events: auto; }
+    #entryPanel {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(10, 10, 50, 0.95); padding: 30px; border-radius: 25px;
+        text-align: center; border: 5px solid #FFD700; z-index: 1000; width: 320px; box-sizing: border-box;
+    }
+    #entryPanel h2 { color: #FFD700; margin-bottom: 20px; font-size: 28px; }
+    select, input, button { padding: 12px; margin: 10px 0; border-radius: 12px; font-size: 18px; width: 100%; border: none; box-sizing: border-box; }
+    select, input { background: #eee; color: #333; }
+    button { background: #00FF00; color: #000; font-family: 'Luckiest Guy'; cursor: pointer; }
+    #leaderboard { margin-top: 20px; max-height: 180px; overflow-y: auto; font-size: 14px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 10px; }
+    .score-row { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 </style>
 </head>
-
 <body>
 
 <div id="entryPanel">
     <h2>KOZMİK GİRİŞ</h2>
-    <select id="studentSelect">
-        <option>Yükleniyor...</option>
-    </select>
+    <select id="studentSelect"><option value="">Yükleniyor...</option></select>
     <input type="password" id="passInput" placeholder="ŞİFRE">
     <button id="startBtn">MACERAYA BAŞLA</button>
-
     <div id="leaderboard">
-        <div style="text-align:center;color:#FFD700">TOP 10</div>
+        <div style="text-align:center;color:#FFD700;margin-bottom:5px;">TOP 10</div>
         <div id="scoreList">Yükleniyor...</div>
     </div>
 </div>
@@ -105,109 +41,113 @@ button {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-/* 🔥 FIREBASE */
 const firebaseConfig = {
     apiKey: "AIzaSyBLNmwvxDkVk2qpwwLt-CoXFtb45N3_Mvg",
     authDomain: "uzay-cikarma-oyunu.firebaseapp.com",
-    projectId: "uzay-cikarma-oyunu"
+    projectId: "uzay-cikarma-oyunu",
+    storageBucket: "uzay-cikarma-oyunu.firebasestorage.app"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-/* 🔥 CANVAS */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const shipImg = new Image(); shipImg.src = 'https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png';
 
 let currentUser = "";
 let girisYapildi = false;
+let skor = 0;
+let kalanSure = 120;
+let can = 3;
+let gemi = {x:0, y:0};
 
-/* 🔥 ÖĞRENCİLER */
+// Öğrenci Listesi
 async function ogrenciListesiniYukle() {
     const select = document.getElementById("studentSelect");
-    const snap = await getDocs(collection(db, "ogrenciler"));
-
-    select.innerHTML = `<option value="">İSMİNİ SEÇ...</option>`;
-    snap.forEach(docSnap => {
-        const opt = document.createElement("option");
-        opt.value = docSnap.id;
-        opt.textContent = docSnap.data().ad;
-        select.appendChild(opt);
-    });
+    try {
+        const q = query(collection(db, "ogrenciler"), orderBy("ad", "asc"));
+        const snap = await getDocs(q);
+        select.innerHTML = `<option value="">İSMİNİ SEÇ...</option>`;
+        snap.forEach(docSnap => {
+            const opt = document.createElement("option");
+            opt.value = docSnap.id;
+            opt.textContent = docSnap.data().ad;
+            select.appendChild(opt);
+        });
+    } catch (e) { select.innerHTML = `<option value="">Hata!</option>`; }
 }
 ogrenciListesiniYukle();
 
-/* 🔥 GİRİŞ */
+// Giriş
 document.getElementById("startBtn").onclick = async () => {
-    const id = studentSelect.value;
-    const pass = passInput.value;
+    const id = document.getElementById("studentSelect").value;
+    const pass = document.getElementById("passInput").value;
     if (!id) return alert("İsim seç");
-
     const snap = await getDoc(doc(db, "ogrenciler", id));
-    if (snap.exists() && snap.data().sifre === pass) {
+    if (snap.exists() && String(snap.data().sifre) === pass) {
         currentUser = snap.data().ad;
         girisYapildi = true;
-
         document.body.classList.add("game-active");
-        entryPanel.style.display = "none";
-
+        document.getElementById("entryPanel").style.display = "none";
         oyunuSifirla();
         guncelle();
-    } else {
-        alert("Hatalı şifre");
-    }
+    } else { alert("Hatalı şifre"); }
 };
 
-/* 🔥 MOBİL DOKUNMA FIX */
-function kontrol(x, y) {
-    if (!girisYapildi) return;
-    gemi.x = x - 40;
-    gemi.y = y - 40;
-}
-
-window.addEventListener("touchstart", e => {
-    if (!girisYapildi) return; // 🔧 GİRİŞTE DOKUNMA SERBEST
-    kontrol(e.touches[0].clientX, e.touches[0].clientY);
-    e.preventDefault();
-}, { passive:false });
-
-window.addEventListener("touchmove", e => {
-    if (!girisYapildi) return;
-    kontrol(e.touches[0].clientX, e.touches[0].clientY);
-    e.preventDefault();
-}, { passive:false });
-
-/* 🔥 OYUN */
-let gemi = {x:0,y:0};
-let skor = 0;
-
-function ekranBoyutlandir(){
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-}
-ekranBoyutlandir();
-addEventListener("resize", ekranBoyutlandir);
-
 function oyunuSifirla(){
-    skor = 0;
-    gemi.x = canvas.width/2;
-    gemi.y = canvas.height-120;
+    skor = 0; can = 3; kalanSure = 120;
+    gemi.x = canvas.width / 2 - 30;
+    gemi.y = canvas.height - 120;
 }
+
+function ekranBoyutlandir(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+ekranBoyutlandir();
+window.addEventListener("resize", ekranBoyutlandir);
+
+// Kontroller
+function moveGemi(x, y) { if (girisYapildi) { gemi.x = x - 30; gemi.y = y - 30; } }
+window.addEventListener("touchstart", e => { if(girisYapildi) { moveGemi(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, {passive:false});
+window.addEventListener("touchmove", e => { if(girisYapildi) { moveGemi(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, {passive:false});
+window.addEventListener("mousemove", e => { moveGemi(e.clientX, e.clientY); });
 
 function guncelle(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="white";
-    ctx.fillText(currentUser+" | "+skor,20,40);
-    ctx.fillRect(gemi.x,gemi.y,60,60);
+    if (!girisYapildi) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // --- UI TASARIMI (TEMİZLENMİŞ) ---
+    ctx.font = "28px 'Luckiest Guy'";
+    
+    // Sol Üst: Skor
+    ctx.fillStyle = "#FFD700";
+    ctx.textAlign = "left";
+    ctx.fillText("PUAN: " + skor, 20, 40);
+    
+    // Sağ Üst: Süre
+    ctx.fillStyle = "white";
+    ctx.textAlign = "right";
+    ctx.fillText("SÜRE: " + kalanSure, canvas.width - 20, 40);
+    
+    // Sol Alt: Canlar (Kalpler)
+    ctx.textAlign = "left";
+    let canlar = "";
+    for(let i=0; i<can; i++) canlar += "❤ ";
+    ctx.fillStyle = "#FF4444";
+    ctx.fillText(canlar, 20, canvas.height - 20);
+
+    // Gemi
+    if (shipImg.complete) ctx.drawImage(shipImg, gemi.x, gemi.y, 60, 60);
+    else { ctx.fillStyle = "#00FF00"; ctx.fillRect(gemi.x, gemi.y, 60, 60); }
+    
     requestAnimationFrame(guncelle);
 }
 
-/* 🔥 LEADERBOARD */
-const q = query(collection(db,"uzay_skorlar"), orderBy("skor","desc"), limit(10));
-onSnapshot(q,s=>{
-    scoreList.innerHTML="";
-    s.forEach(d=>{
-        scoreList.innerHTML+=`<div class="score-row"><span>${d.data().isim}</span><span>${d.data().skor}</span></div>`;
+// Liderlik Tablosu
+const q_score = query(collection(db, "uzay_skorlar"), orderBy("skor", "desc"), limit(10));
+onSnapshot(q_score, s => {
+    const scoreList = document.getElementById("scoreList");
+    scoreList.innerHTML = "";
+    s.forEach(d => {
+        scoreList.innerHTML += `<div class="score-row"><span>${d.data().isim}</span><span>${d.data().skor}</span></div>`;
     });
 });
 </script>
