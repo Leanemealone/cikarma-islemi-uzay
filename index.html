@@ -77,16 +77,24 @@ let seviyeMesajSayac = 120; let seviyeBonusHakki = true; [cite: 9]
 async function ogrenciListesiniYukle() {
     const select = document.getElementById("studentSelect");
     try {
+        console.log("Veri çekme işlemi başladı...");
         const querySnapshot = await getDocs(collection(db, "ogrenciler"));
+        
+        if (querySnapshot.empty) {
+            alert("Dikkat: Veritabanında öğrenci bulunamadı!");
+        }
+
         select.innerHTML = '<option value="">İSMİNİ SEÇ...</option>';
         querySnapshot.forEach((doc) => {
+            console.log("Bulunan Öğrenci:", doc.id);
             let opt = document.createElement("option");
             opt.value = doc.id;
             opt.textContent = doc.id;
             select.appendChild(opt);
         });
     } catch (e) {
-        console.error("Liste çekilemedi: ", e);
+        console.error("Hata Detayı: ", e);
+        alert("Bağlantı Hatası: " + e.message);
         select.innerHTML = '<option value="">HATA OLUŞTU</option>';
     }
 }
@@ -277,3 +285,4 @@ function guncelle() {
 </script>
 </body>
 </html>
+
