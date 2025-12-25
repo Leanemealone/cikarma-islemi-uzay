@@ -20,6 +20,12 @@
         button:hover { background: #00cc00; }
         #leaderboard { margin-top: 20px; max-height: 180px; overflow-y: auto; text-align: left; font-size: 14px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 10px; }
         .score-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Mobil Klavye Düzenlemesi */
+        @media screen and (max-height: 500px) {
+            #entryPanel { top: 10px; transform: translate(-50%, 0); padding: 15px; width: 90%; max-width: 320px; }
+            #leaderboard { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -76,35 +82,31 @@ let meteorlar = []; let mesaj = ""; let mesajRengi = ""; let mesajSayac = 0;
 let seviyeMesajSayac = 120; let seviyeBonusHakki = true;
 let gemi = { x: 0, y: 0 };
 
-// --- FIREBASE: ÖĞRENCİ LİSTESİNİ ÇEK ---
+// --- FIREBASE: ÖĞRENCİ LİSTESİNİ ÇEK (ALFABETİK) ---
 async function ogrenciListesiniYukle() {
     const select = document.getElementById("studentSelect");
-
     try {
-        const snap = await getDocs(collection(db, "ogrenciler"));
+        // 'ad' alanına göre alfabetik sıralama ekledik
+        const q = query(collection(db, "ogrenciler"), orderBy("ad", "asc"));
+        const snap = await getDocs(q);
 
         select.innerHTML = '<option value="">İSMİNİ SEÇ...</option>';
-
         snap.forEach((docSnap) => {
             const data = docSnap.data();
-
             let opt = document.createElement("option");
-            opt.value = docSnap.id;   // girişte doc id kullanılacak
-            opt.textContent = data.ad; // ekranda görünen ad
+            opt.value = docSnap.id;
+            opt.textContent = data.ad;
             select.appendChild(opt);
         });
-
-        console.log("Öğrenciler yüklendi:", snap.size);
-
     } catch (err) {
-        console.error("Öğrenci listesi alınamadı:", err);
+        console.error("Hata:", err);
         select.innerHTML = '<option value="">YÜKLENEMEDİ</option>';
     }
 }
 ogrenciListesiniYukle();
 
-// --- GİRİŞ KONTROLÜ ---
-document.getElementById("startBtn").onclick = async () => {
+// --- GİRİŞ KONTROLÜ (MOBİL UYUMLU) ---
+const handleLogin = async () => {
     const selected = document.getElementById("studentSelect").value;
     const pass = document.getElementById("passInput").value;
     if (!selected) return alert("İsminizi seçin!");
@@ -113,15 +115,17 @@ document.getElementById("startBtn").onclick = async () => {
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists() && String(userSnap.data().sifre) === pass) {
-    currentUser = userSnap.data().ad; // 🔥 GERÇEK İSİM
-    girisYapildi = true;
-    document.getElementById("entryPanel").style.display = "none";
-    oyunuSifirla();
-    guncelle();
-} else {
-    alert("Hatalı şifre!");
-}
+        currentUser = userSnap.data().ad;
+        girisYapildi = true;
+        document.getElementById("entryPanel").style.display = "none";
+        oyunuSifirla();
+        guncelle();
+    } else {
+        alert("Hatalı şifre!");
+    }
 };
+
+document.getElementById("startBtn").addEventListener("click", handleLogin);
 
 async function saveScoreToFirebase(puan) {
     if (!currentUser) return;
@@ -156,10 +160,8 @@ window.addEventListener("resize", ekranBoyutlandir);
 function seviyeAyarla() {
     const arkaPlanlar = ['https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/arka%20plan%20(2).png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background2.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background3.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background4.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/background5.png'];
     const gemiResimleri = ['https://raw.githubusercontent.com/Leanemealone/assets-images/refs/heads/main/uzay%20araci.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi2.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi3.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi4.png','https://raw.githubusercontent.com/Leanemealone/cikarma-islemi-uzay/refs/heads/main/uzaygemisi5.png'];
-    
     bgImg.src = arkaPlanlar[(seviye - 1) % arkaPlanlar.length];
     shipImg.src = gemiResimleri[(seviye - 1) % gemiResimleri.length];
-    
     kalanSure = 120; can = 3; meteorHizi = 1.3 + (seviye * 0.2);
     seviyeMesajSayac = 120; seviyeBonusHakki = true;
     soruUret();
@@ -174,13 +176,11 @@ function soruUret() {
     let s1, s2;
     let bonusMu = (seviyeBonusHakki && Math.random() < 0.25);
     if (bonusMu) seviyeBonusHakki = false;
-    
     if (seviye === 1) {
         do { s1 = Math.floor(Math.random() * 20) + 10; s2 = Math.floor(Math.random() * 9) + 1; } while (s1 % 10 < s2 % 10);
     } else {
         s1 = Math.floor(Math.random() * 40) + 20; s2 = Math.floor(Math.random() * 19) + 1;
     }
-    
     soru = { s1: s1, s2: s2, sonuc: s1 - s2, bonus: bonusMu };
     let secenekler = [
         { deger: soru.sonuc, tip: "dogru" }, 
@@ -219,6 +219,9 @@ const kontrol = (ex, ey) => {
 
 window.addEventListener("mousemove", (e) => kontrol(e.clientX, e.clientY));
 window.addEventListener("touchstart", (e) => { 
+    // Giriş paneli açıkken dokunmatik engellemeyi kaldır
+    if (!girisYapildi) return;
+
     if (oyunBitti) { 
         document.getElementById("entryPanel").style.display = "block"; 
         girisYapildi = false; 
@@ -228,6 +231,7 @@ window.addEventListener("touchstart", (e) => {
 }, { passive: false });
 
 window.addEventListener("touchmove", (e) => { 
+    if(!girisYapildi) return;
     if(!oyunBitti) { 
         gemi.x = e.touches[0].clientX - 40; 
         gemi.y = e.touches[0].clientY - 40; 
@@ -256,7 +260,6 @@ function guncelle() {
         seviyeMesajSayac--; return requestAnimationFrame(guncelle);
     }
 
-    // UI Çizimi
     ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "24px 'Luckiest Guy'";
     ctx.fillText(`${currentUser} | Puan: ${skor}`, 20, 40);
     ctx.fillStyle = "#FFD700"; ctx.fillText(`Seviye: ${seviye}`, 20, 75);
@@ -264,7 +267,6 @@ function guncelle() {
     ctx.fillText(`Süre: ${kalanSure}`, canvas.width - 20, 40);
     for(let i=0; i<3; i++){ ctx.fillStyle = i < can ? "red" : "#555"; ctx.fillText("❤", canvas.width - 20 - (i*35), 75); }
 
-    // Soru Çizimi
     ctx.fillStyle = soru.bonus ? "#FF00FF" : "#FFD700"; ctx.strokeStyle = "black"; ctx.lineWidth = 4;
     ctx.font = "bold 60px 'Luckiest Guy'"; ctx.textAlign = "right";
     let hX = canvas.width / 2 + 40;
@@ -273,12 +275,10 @@ function guncelle() {
     ctx.textAlign = "left"; ctx.strokeText("-", hX - 100, 135); ctx.fillText("-", hX - 100, 135);
     ctx.beginPath(); ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.moveTo(hX-110, 155); ctx.lineTo(hX+10, 155); ctx.stroke();
 
-    // Gemi Sınırları ve Çizimi
     gemi.y = Math.max(220, Math.min(gemi.y, canvas.height - 80));
     gemi.x = Math.max(0, Math.min(gemi.x, canvas.width - 80));
     ctx.drawImage(shipImg, gemi.x, gemi.y, 80, 80);
 
-    // Meteorlar
     meteorlar.forEach((m) => {
         m.y += meteorHizi;
         ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = soru.bonus ? "purple" : "orange";
@@ -286,7 +286,6 @@ function guncelle() {
         ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.textAlign = "center";
         ctx.fillText(m.deger, m.x + 50, m.y + 130);
 
-        // Çarpışma Kontrolü
         if (gemi.x + 10 < m.x + 90 && gemi.x + 70 > m.x + 10 && gemi.y + 10 < m.y + 150 && gemi.y + 70 > m.y + 80) {
             if (m.tip === "dogru") {
                 alkisSesi.currentTime = 0; alkisSesi.play();
@@ -316,4 +315,3 @@ function guncelle() {
 </script>
 </body>
 </html>
-
